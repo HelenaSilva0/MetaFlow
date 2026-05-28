@@ -1,0 +1,18 @@
+<resources>
+    <string name="app_name">MetaFlow</string>
+    <string name="title_activity_login">LoginActivity</string>
+    <string name="title_activity_register">RegisterActivity</string>
+    <string name="title_activity_goal">Goal</string>
+    <string name="title_activity_main_view_model">MainViewModel</string>
+    <string name="title_activity_login_page">LoginPage</string>
+    <string name="title_activity_register_page">RegisterPage</string>
+    <string name="title_activity_goals_page">GoalsPage</string>
+    <string name="title_activity_progress_page">ProgressPage</string>
+    <string name="title_activity_history_page">HistoryPage</string>
+    <string name="title_activity_profile_page">ProfilePage</string>
+    <string name="title_activity_goal_dialog">GoalDialog</string>
+    <string name="title_activity_goal_item">GoalItem</string>
+    <string name="title_activity_bottom_nav_item">BottomNavItem</string>
+    <string name="title_activity_bottom_nav_bar">BottomNavBar</string>
+    <string name="title_activity_main_nav_host">MainNavHost</string>
+</resources>
