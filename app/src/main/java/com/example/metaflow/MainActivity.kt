@@ -93,7 +93,7 @@ class MainActivity : ComponentActivity() {
                     bottomBar = {
                         val items = listOf(
                             BottomNavItem.HomeButton,
-                            BottomNavItem.GoalsButton,
+                            BottomNavItem.RankingButton,
                             BottomNavItem.ProgressButton,
                             BottomNavItem.HistoryButton,
                             BottomNavItem.ProfileButton

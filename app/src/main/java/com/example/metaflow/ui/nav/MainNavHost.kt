@@ -5,11 +5,11 @@ import androidx.compose.ui.Modifier
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
-import com.example.metaflow.ui.GoalsPage
 import com.example.metaflow.ui.HistoryPage
 import com.example.metaflow.ui.HomePage
 import com.example.metaflow.ui.ProfilePage
 import com.example.metaflow.ui.ProgressPage
+import com.example.metaflow.ui.RankingPage
 import com.example.metaflow.viewmodel.MainViewModel
 
 @Composable
@@ -30,8 +30,8 @@ fun MainNavHost(
             )
         }
 
-        composable<Route.Goals> {
-            GoalsPage(
+        composable<Route.Ranking> {
+            RankingPage(
                 modifier = modifier,
                 viewModel = viewModel
             )

@@ -1,11 +1,11 @@
 package com.example.metaflow.ui.nav
 
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.Star
 import androidx.compose.ui.graphics.vector.ImageVector
 import kotlinx.serialization.Serializable
 
@@ -14,7 +14,7 @@ sealed interface Route {
     data object Home : Route
 
     @Serializable
-    data object Goals : Route
+    data object Ranking : Route
 
     @Serializable
     data object Progress : Route
@@ -34,8 +34,8 @@ sealed class BottomNavItem(
     data object HomeButton :
         BottomNavItem("Início", Icons.Default.Home, Route.Home)
 
-    data object GoalsButton :
-        BottomNavItem("Metas", Icons.Default.CheckCircle, Route.Goals)
+    data object RankingButton :
+        BottomNavItem("Ranking", Icons.Default.Star, Route.Ranking)
 
     data object ProgressButton :
         BottomNavItem("Progresso", Icons.Default.Favorite, Route.Progress)
