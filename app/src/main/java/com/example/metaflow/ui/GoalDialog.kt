@@ -8,11 +8,11 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -43,7 +43,9 @@ fun GoalDialog(
         onDismissRequest = { onDismiss() }
     ) {
         Surface(
-            shape = RoundedCornerShape(16.dp)
+            shape = MaterialTheme.shapes.large,
+            color = MaterialTheme.colorScheme.surface,
+            tonalElevation = 4.dp
         ) {
             Column(
                 modifier = Modifier.padding(20.dp)
@@ -53,11 +55,16 @@ fun GoalDialog(
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Text(text = "Criar nova meta")
+                    Text(
+                        text = "Criar nova meta",
+                        style = MaterialTheme.typography.titleLarge,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
 
                     Icon(
                         imageVector = Icons.Filled.Close,
                         contentDescription = "Fechar",
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
                         modifier = Modifier.clickable {
                             onDismiss()
                         }
@@ -70,7 +77,8 @@ fun GoalDialog(
                     modifier = Modifier.fillMaxWidth(),
                     label = { Text(text = "Nome da meta") },
                     value = name.value,
-                    onValueChange = { name.value = it }
+                    onValueChange = { name.value = it },
+                    shape = MaterialTheme.shapes.medium
                 )
 
                 Spacer(modifier = Modifier.height(10.dp))
@@ -79,7 +87,8 @@ fun GoalDialog(
                     modifier = Modifier.fillMaxWidth(),
                     label = { Text(text = "Categoria") },
                     value = category.value,
-                    onValueChange = { category.value = it }
+                    onValueChange = { category.value = it },
+                    shape = MaterialTheme.shapes.medium
                 )
 
                 Spacer(modifier = Modifier.height(10.dp))
@@ -88,7 +97,8 @@ fun GoalDialog(
                     modifier = Modifier.fillMaxWidth(),
                     label = { Text(text = "Horário do lembrete") },
                     value = reminderTime.value,
-                    onValueChange = { reminderTime.value = it }
+                    onValueChange = { reminderTime.value = it },
+                    shape = MaterialTheme.shapes.medium
                 )
 
                 Spacer(modifier = Modifier.height(10.dp))
@@ -97,7 +107,8 @@ fun GoalDialog(
                     modifier = Modifier.fillMaxWidth(),
                     label = { Text(text = "Prioridade") },
                     value = priority.value,
-                    onValueChange = { priority.value = it }
+                    onValueChange = { priority.value = it },
+                    shape = MaterialTheme.shapes.medium
                 )
 
                 Spacer(modifier = Modifier.height(18.dp))
@@ -111,6 +122,7 @@ fun GoalDialog(
                             priority.value
                         )
                     },
+                    shape = MaterialTheme.shapes.extraLarge,
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(50.dp)

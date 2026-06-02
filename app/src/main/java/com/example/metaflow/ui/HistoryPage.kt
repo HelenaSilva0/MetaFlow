@@ -8,10 +8,10 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.metaflow.viewmodel.MainViewModel
@@ -24,19 +24,21 @@ fun HistoryPage(
     Column(
         modifier = modifier
             .fillMaxSize()
-            .background(Color(0xFF120026))
+            .background(MaterialTheme.colorScheme.background)
             .padding(20.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
         Text(
             text = "Histórico",
-            color = Color.White,
-            fontSize = 26.sp
+            color = MaterialTheme.colorScheme.onBackground,
+            fontSize = 26.sp,
+            style = MaterialTheme.typography.headlineMedium
         )
 
         Text(
             text = "Resumo das suas metas e hábitos recentes.",
-            color = Color(0xFFD98CFF)
+            color = MaterialTheme.colorScheme.secondary,
+            style = MaterialTheme.typography.bodyMedium
         )
 
         HistoryCard(
@@ -63,8 +65,10 @@ fun HistoryCard(
 ) {
     Card(
         colors = CardDefaults.cardColors(
-            containerColor = Color(0xFF24103F)
+            containerColor = MaterialTheme.colorScheme.surface
         ),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+        shape = MaterialTheme.shapes.large,
         modifier = Modifier.fillMaxWidth()
     ) {
         Column(
@@ -72,13 +76,15 @@ fun HistoryCard(
         ) {
             Text(
                 text = title,
-                color = Color.White,
-                fontSize = 18.sp
+                color = MaterialTheme.colorScheme.onSurface,
+                fontSize = 18.sp,
+                style = MaterialTheme.typography.titleMedium
             )
 
             Text(
                 text = description,
-                color = Color(0xFFD98CFF)
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                style = MaterialTheme.typography.bodyMedium
             )
         }
     }
