@@ -8,12 +8,10 @@ import androidx.activity.viewModels
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ExitToApp
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -23,11 +21,14 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.navigation.NavDestination.Companion.hasRoute
+import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.example.metaflow.ui.GoalDialog
 import com.example.metaflow.ui.nav.BottomNavBar
 import com.example.metaflow.ui.nav.BottomNavItem
 import com.example.metaflow.ui.nav.MainNavHost
+import com.example.metaflow.ui.nav.Route
 import com.example.metaflow.ui.theme.MetaFlowTheme
 import com.example.metaflow.viewmodel.MainViewModel
 
@@ -42,6 +43,8 @@ class MainActivity : ComponentActivity() {
 
         setContent {
             val navController = rememberNavController()
+            val navBackStackEntry by navController.currentBackStackEntryAsState()
+            val currentDestination = navBackStackEntry?.destination
             var showDialog by remember { mutableStateOf(false) }
 
             MetaFlowTheme {
@@ -74,19 +77,6 @@ class MainActivity : ComponentActivity() {
                                     style = MaterialTheme.typography.titleLarge,
                                     color = MaterialTheme.colorScheme.primary
                                 )
-                            },
-                            actions = {
-                                IconButton(
-                                    onClick = {
-                                        finish()
-                                    }
-                                ) {
-                                    Icon(
-                                        imageVector = Icons.AutoMirrored.Filled.ExitToApp,
-                                        contentDescription = "Sair",
-                                        tint = MaterialTheme.colorScheme.onSurfaceVariant
-                                    )
-                                }
                             }
                         )
                     },
@@ -105,18 +95,21 @@ class MainActivity : ComponentActivity() {
                         )
                     },
                     floatingActionButton = {
-                        FloatingActionButton(
-                            onClick = {
-                                showDialog = true
-                            },
-                            containerColor = MaterialTheme.colorScheme.primary,
-                            contentColor = MaterialTheme.colorScheme.onPrimary,
-                            shape = MaterialTheme.shapes.extraLarge
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.Add,
-                                contentDescription = "Adicionar meta"
-                            )
+                        // O botão adicionar meta deve aparecer apenas na tela de inicio
+                        if (currentDestination?.hasRoute(Route.Home::class) == true) {
+                            FloatingActionButton(
+                                onClick = {
+                                    showDialog = true
+                                },
+                                containerColor = MaterialTheme.colorScheme.primary,
+                                contentColor = MaterialTheme.colorScheme.onPrimary,
+                                shape = MaterialTheme.shapes.extraLarge
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.Add,
+                                    contentDescription = "Adicionar meta"
+                                )
+                            }
                         }
                     }
                 ) { innerPadding ->
