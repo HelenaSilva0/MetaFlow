@@ -1,8 +1,18 @@
+import java.util.Properties
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.compose)
     id("org.jetbrains.kotlin.plugin.serialization")
 }
+
+val localProperties = Properties()
+val localPropertiesFile = rootProject.file("local.properties")
+if (localPropertiesFile.exists()) {
+    localProperties.load(localPropertiesFile.inputStream())
+}
+// Altere o nome abaixo para o que você usou no local.properties, ex: MAPS_API_KEY
+val mapsKey = (localProperties.getProperty("MAPS_API_KEY") ?: "").replace("\"", "")
 
 android {
     namespace = "com.example.metaflow"
@@ -21,6 +31,8 @@ android {
         versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+        
+        manifestPlaceholders["MAPS_API_KEY"] = mapsKey
     }
 
     buildTypes {
@@ -57,6 +69,10 @@ dependencies {
     implementation("androidx.navigation:navigation-compose:2.9.8")
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.11.0")
     implementation("androidx.compose.material:material-icons-extended")
+
+    // Google Maps
+    implementation("com.google.maps.android:maps-compose:8.3.0")
+    implementation("com.google.android.gms:play-services-maps:20.0.0")
 
     testImplementation(libs.junit)
 

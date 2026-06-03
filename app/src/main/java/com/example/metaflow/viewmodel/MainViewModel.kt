@@ -12,21 +12,24 @@ class MainViewModel : ViewModel() {
             name = "Beber água",
             category = "Saúde",
             reminderTime = "08:00",
-            priority = "Alta"
+            priority = "Alta",
+            recurrence = "Diário"
         ),
         Goal(
             id = 2,
             name = "Estudar 30 minutos",
             category = "Estudos",
             reminderTime = "19:00",
-            priority = "Média"
+            priority = "Média",
+            recurrence = "Seg a Sex"
         ),
         Goal(
             id = 3,
             name = "Fazer exercício",
             category = "Rotina",
             reminderTime = "17:30",
-            priority = "Alta"
+            priority = "Alta",
+            recurrence = "Diário"
         )
     ).toMutableStateList()
 
@@ -37,14 +40,24 @@ class MainViewModel : ViewModel() {
         name: String,
         category: String,
         reminderTime: String,
-        priority: String
+        priority: String,
+        recurrence: String = "Uma vez",
+        deadline: String = "",
+        location: String = "",
+        latitude: Double? = null,
+        longitude: Double? = null
     ) {
         val newGoal = Goal(
             id = _goals.size + 1,
             name = name,
             category = category,
             reminderTime = reminderTime,
-            priority = priority
+            priority = priority,
+            recurrence = recurrence,
+            deadline = deadline,
+            location = location,
+            latitude = latitude,
+            longitude = longitude
         )
 
         _goals.add(newGoal)

@@ -71,6 +71,13 @@ fun GoalItem(
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     style = MaterialTheme.typography.bodyMedium
                 )
+                if (goal.recurrence.isNotBlank() || goal.location.isNotBlank()) {
+                    Text(
+                        text = "${goal.recurrence}${if (goal.location.isNotBlank()) " @ ${goal.location}" else ""}",
+                        color = MaterialTheme.colorScheme.primary.copy(alpha = 0.7f),
+                        style = MaterialTheme.typography.labelSmall
+                    )
+                }
             }
 
             IconButton(

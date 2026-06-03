@@ -53,13 +53,18 @@ class MainActivity : ComponentActivity() {
                         onDismiss = {
                             showDialog = false
                         },
-                        onConfirm = { name, category, reminderTime, priority ->
+                        onConfirm = { name, category, reminderTime, priority, recurrence, deadline, location, lat, lng ->
                             if (name.isNotBlank()) {
                                 viewModel.addGoal(
                                     name = name,
                                     category = category.ifBlank { "Geral" },
                                     reminderTime = reminderTime.ifBlank { "--:--" },
-                                    priority = priority.ifBlank { "Média" }
+                                    priority = priority.ifBlank { "Média" },
+                                    recurrence = recurrence,
+                                    deadline = deadline,
+                                    location = location,
+                                    latitude = lat,
+                                    longitude = lng
                                 )
                             }
 
