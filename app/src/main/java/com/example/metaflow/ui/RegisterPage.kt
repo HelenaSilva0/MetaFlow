@@ -29,7 +29,7 @@ import androidx.compose.ui.unit.sp
 @Composable
 fun RegisterPage(
     modifier: Modifier = Modifier,
-    onRegister: () -> Unit
+    onRegister: (String, String) -> Unit
 ) {
     var name by rememberSaveable { mutableStateOf("") }
     var email by rememberSaveable { mutableStateOf("") }
@@ -106,7 +106,7 @@ fun RegisterPage(
         Spacer(modifier = Modifier.height(20.dp))
 
         Button(
-            onClick = onRegister,
+            onClick = { onRegister(email, password) },
             enabled = name.isNotEmpty() &&
                     email.isNotEmpty() &&
                     password.isNotEmpty() &&

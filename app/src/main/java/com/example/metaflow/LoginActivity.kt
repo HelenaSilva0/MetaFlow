@@ -9,6 +9,8 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.material3.MaterialTheme
 import com.example.metaflow.ui.LoginPage
+import com.google.firebase.Firebase
+import com.google.firebase.auth.auth
 
 class LoginActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -18,18 +20,20 @@ class LoginActivity : ComponentActivity() {
         setContent {
             MaterialTheme {
                 LoginPage(
-                    onLogin = {
-                        Toast.makeText(
-                            this,
-                            "Login realizado com sucesso!",
-                            Toast.LENGTH_SHORT
-                        ).show()
-
-                        startActivity(
-                            Intent(this, MainActivity::class.java).setFlags(
-                                FLAG_ACTIVITY_SINGLE_TOP
-                            )
-                        )
+                    onLogin = { email, password ->
+                        Firebase.auth.signInWithEmailAndPassword(email, password)
+                            .addOnCompleteListener(this) { task ->
+                                if (task.isSuccessful) {
+                                    startActivity(
+                                        Intent(this, MainActivity::class.java).setFlags(
+                                            FLAG_ACTIVITY_SINGLE_TOP
+                                        )
+                                    )
+                                    Toast.makeText(this, "Login OK!", Toast.LENGTH_LONG).show()
+                                } else {
+                                    Toast.makeText(this, "Login FALHOU!", Toast.LENGTH_LONG).show()
+                                }
+                            }
                     },
                     onRegister = {
                         startActivity(

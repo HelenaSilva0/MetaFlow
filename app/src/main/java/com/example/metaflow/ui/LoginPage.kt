@@ -30,7 +30,7 @@ import androidx.compose.ui.unit.sp
 @Composable
 fun LoginPage(
     modifier: Modifier = Modifier,
-    onLogin: () -> Unit,
+    onLogin: (String, String) -> Unit,
     onRegister: () -> Unit
 ) {
     var email by rememberSaveable { mutableStateOf("") }
@@ -87,7 +87,7 @@ fun LoginPage(
         Spacer(modifier = Modifier.height(20.dp))
 
         Button(
-            onClick = onLogin,
+            onClick = { onLogin(email, password) },
             enabled = email.isNotEmpty() && password.isNotEmpty(),
             shape = MaterialTheme.shapes.extraLarge,
             modifier = Modifier.fillMaxWidth()

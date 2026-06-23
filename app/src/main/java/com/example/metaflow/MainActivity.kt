@@ -31,6 +31,8 @@ import com.example.metaflow.ui.nav.MainNavHost
 import com.example.metaflow.ui.nav.Route
 import com.example.metaflow.ui.theme.MetaFlowTheme
 import com.example.metaflow.viewmodel.MainViewModel
+import com.google.firebase.Firebase
+import com.google.firebase.auth.auth
 
 @OptIn(ExperimentalMaterial3Api::class)
 class MainActivity : ComponentActivity() {
@@ -125,6 +127,7 @@ class MainActivity : ComponentActivity() {
                             navController = navController,
                             viewModel = viewModel,
                             onLogout = {
+                                Firebase.auth.signOut()
                                 finish()
                             }
                         )
