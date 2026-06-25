@@ -1,12 +1,13 @@
 package com.example.metaflow.ui.nav
 
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
+import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavDestination.Companion.hasRoute
 import androidx.navigation.NavGraph.Companion.findStartDestination
@@ -19,7 +20,8 @@ fun BottomNavBar(
     items: List<BottomNavItem>
 ) {
     NavigationBar(
-        contentColor = Color.Black
+        containerColor = MaterialTheme.colorScheme.surface,
+        contentColor = MaterialTheme.colorScheme.primary
     ) {
         val navBackStackEntry by navController.currentBackStackEntryAsState()
         val currentRoute = navBackStackEntry?.destination
@@ -38,6 +40,13 @@ fun BottomNavBar(
                         fontSize = 11.sp
                     )
                 },
+                colors = NavigationBarItemDefaults.colors(
+                    selectedIconColor = MaterialTheme.colorScheme.primary,
+                    unselectedIconColor = MaterialTheme.colorScheme.outline,
+                    selectedTextColor = MaterialTheme.colorScheme.primary,
+                    unselectedTextColor = MaterialTheme.colorScheme.outline,
+                    indicatorColor = MaterialTheme.colorScheme.surfaceVariant
+                ),
                 alwaysShowLabel = true,
                 selected = currentRoute?.hasRoute(item.route::class) == true,
                 onClick = {

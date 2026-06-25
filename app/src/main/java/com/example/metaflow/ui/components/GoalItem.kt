@@ -15,11 +15,11 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.example.metaflow.model.Goal
 
@@ -35,8 +35,9 @@ fun GoalItem(
             .fillMaxWidth()
             .padding(vertical = 6.dp),
         colors = CardDefaults.cardColors(
-            containerColor = Color(0xFFF7F0FF)
-        )
+            containerColor = MaterialTheme.colorScheme.surfaceVariant
+        ),
+        shape = MaterialTheme.shapes.medium
     ) {
         Row(
             modifier = Modifier
@@ -52,7 +53,7 @@ fun GoalItem(
                     Icons.Outlined.RadioButtonUnchecked
                 },
                 contentDescription = "Status da meta",
-                tint = if (goal.completed) Color(0xFF7B00FF) else Color.Gray
+                tint = if (goal.completed) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline
             )
 
             Spacer(modifier = Modifier.size(12.dp))
@@ -60,8 +61,16 @@ fun GoalItem(
             Column(
                 modifier = Modifier.weight(1f)
             ) {
-                Text(text = goal.name)
-                Text(text = "${goal.category} • ${goal.reminderTime} • ${goal.priority}")
+                Text(
+                    text = goal.name,
+                    color = MaterialTheme.colorScheme.onSurface,
+                    style = MaterialTheme.typography.bodyLarge
+                )
+                Text(
+                    text = "${goal.category} • ${goal.reminderTime} • ${goal.priority}",
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    style = MaterialTheme.typography.bodyMedium
+                )
             }
 
             IconButton(
@@ -69,7 +78,8 @@ fun GoalItem(
             ) {
                 Icon(
                     imageVector = Icons.Filled.Close,
-                    contentDescription = "Remover meta"
+                    contentDescription = "Remover meta",
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
         }

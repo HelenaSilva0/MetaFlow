@@ -11,10 +11,10 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.LinearProgressIndicator
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.metaflow.viewmodel.MainViewModel
@@ -29,20 +29,23 @@ fun ProgressPage(
     Column(
         modifier = modifier
             .fillMaxSize()
-            .background(Color(0xFF120026))
+            .background(MaterialTheme.colorScheme.background)
             .padding(20.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
         Text(
             text = "Progresso",
-            color = Color.White,
-            fontSize = 26.sp
+            color = MaterialTheme.colorScheme.onBackground,
+            fontSize = 26.sp,
+            style = MaterialTheme.typography.headlineMedium
         )
 
         Card(
             colors = CardDefaults.cardColors(
-                containerColor = Color(0xFF24103F)
+                containerColor = MaterialTheme.colorScheme.surface
             ),
+            elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+            shape = MaterialTheme.shapes.large,
             modifier = Modifier.fillMaxWidth()
         ) {
             Column(
@@ -50,19 +53,23 @@ fun ProgressPage(
             ) {
                 Text(
                     text = "$progress%",
-                    color = Color.White,
-                    fontSize = 32.sp
+                    color = MaterialTheme.colorScheme.primary,
+                    fontSize = 32.sp,
+                    style = MaterialTheme.typography.headlineLarge
                 )
 
                 Text(
                     text = "desempenho geral",
-                    color = Color(0xFFD98CFF)
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    style = MaterialTheme.typography.bodyMedium
                 )
 
                 Spacer(modifier = Modifier.height(12.dp))
 
                 LinearProgressIndicator(
                     progress = { progress / 100f },
+                    color = MaterialTheme.colorScheme.primary,
+                    trackColor = MaterialTheme.colorScheme.surfaceVariant,
                     modifier = Modifier.fillMaxWidth()
                 )
             }
@@ -70,8 +77,10 @@ fun ProgressPage(
 
         Card(
             colors = CardDefaults.cardColors(
-                containerColor = Color(0xFF24103F)
+                containerColor = MaterialTheme.colorScheme.surface
             ),
+            elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+            shape = MaterialTheme.shapes.large,
             modifier = Modifier.fillMaxWidth()
         ) {
             Column(
@@ -79,21 +88,25 @@ fun ProgressPage(
             ) {
                 Text(
                     text = "Metas concluídas",
-                    color = Color.White,
-                    fontSize = 18.sp
+                    color = MaterialTheme.colorScheme.onSurface,
+                    fontSize = 18.sp,
+                    style = MaterialTheme.typography.titleMedium
                 )
 
                 Text(
                     text = "${viewModel.completedCount()} de ${viewModel.totalCount()} metas",
-                    color = Color(0xFFD98CFF)
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    style = MaterialTheme.typography.bodyMedium
                 )
             }
         }
 
         Card(
             colors = CardDefaults.cardColors(
-                containerColor = Color(0xFF24103F)
+                containerColor = MaterialTheme.colorScheme.surface
             ),
+            elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+            shape = MaterialTheme.shapes.large,
             modifier = Modifier.fillMaxWidth()
         ) {
             Column(
@@ -101,18 +114,21 @@ fun ProgressPage(
             ) {
                 Text(
                     text = "Gamificação",
-                    color = Color.White,
-                    fontSize = 18.sp
+                    color = MaterialTheme.colorScheme.onSurface,
+                    fontSize = 18.sp,
+                    style = MaterialTheme.typography.titleMedium
                 )
 
                 Text(
                     text = "XP atual: ${viewModel.xpPoints()} pontos",
-                    color = Color(0xFFD98CFF)
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    style = MaterialTheme.typography.bodyMedium
                 )
 
                 Text(
                     text = "Sequência: 3 dias cumpridos",
-                    color = Color(0xFFD98CFF)
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    style = MaterialTheme.typography.bodyMedium
                 )
             }
         }

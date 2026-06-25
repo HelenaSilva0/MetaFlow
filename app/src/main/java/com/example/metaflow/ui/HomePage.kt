@@ -11,10 +11,10 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.LinearProgressIndicator
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.metaflow.viewmodel.MainViewModel
@@ -29,26 +29,30 @@ fun HomePage(
     Column(
         modifier = modifier
             .fillMaxSize()
-            .background(Color(0xFF120026))
+            .background(MaterialTheme.colorScheme.background)
             .padding(20.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
         Text(
             text = "Olá, bem-vinda ao MetaFlow!",
-            color = Color.White,
-            fontSize = 24.sp
+            color = MaterialTheme.colorScheme.onBackground,
+            fontSize = 24.sp,
+            style = MaterialTheme.typography.headlineSmall
         )
 
         Text(
             text = "Hábitos alcançam metas.",
-            color = Color(0xFFD98CFF),
-            fontSize = 16.sp
+            color = MaterialTheme.colorScheme.secondary,
+            fontSize = 16.sp,
+            style = MaterialTheme.typography.titleMedium
         )
 
         Card(
             colors = CardDefaults.cardColors(
-                containerColor = Color(0xFF24103F)
+                containerColor = MaterialTheme.colorScheme.surface
             ),
+            elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+            shape = MaterialTheme.shapes.large,
             modifier = Modifier.fillMaxWidth()
         ) {
             Column(
@@ -56,14 +60,17 @@ fun HomePage(
             ) {
                 Text(
                     text = "Progresso de hoje",
-                    color = Color.White,
-                    fontSize = 18.sp
+                    color = MaterialTheme.colorScheme.onSurface,
+                    fontSize = 18.sp,
+                    style = MaterialTheme.typography.titleMedium
                 )
 
                 Spacer(modifier = Modifier.height(12.dp))
 
                 LinearProgressIndicator(
                     progress = { progress / 100f },
+                    color = MaterialTheme.colorScheme.primary,
+                    trackColor = MaterialTheme.colorScheme.surfaceVariant,
                     modifier = Modifier.fillMaxWidth()
                 )
 
@@ -71,15 +78,18 @@ fun HomePage(
 
                 Text(
                     text = "$progress% das metas concluídas",
-                    color = Color(0xFFD98CFF)
+                    color = MaterialTheme.colorScheme.primary,
+                    style = MaterialTheme.typography.bodyMedium
                 )
             }
         }
 
         Card(
             colors = CardDefaults.cardColors(
-                containerColor = Color(0xFF24103F)
+                containerColor = MaterialTheme.colorScheme.surface
             ),
+            elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+            shape = MaterialTheme.shapes.large,
             modifier = Modifier.fillMaxWidth()
         ) {
             Column(
@@ -87,33 +97,38 @@ fun HomePage(
             ) {
                 Text(
                     text = "Resumo",
-                    color = Color.White,
-                    fontSize = 18.sp
+                    color = MaterialTheme.colorScheme.onSurface,
+                    fontSize = 18.sp,
+                    style = MaterialTheme.typography.titleMedium
                 )
 
                 Spacer(modifier = Modifier.height(8.dp))
 
                 Text(
                     text = "Metas cadastradas: ${viewModel.totalCount()}",
-                    color = Color.White
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    style = MaterialTheme.typography.bodyMedium
                 )
 
                 Text(
                     text = "Metas concluídas: ${viewModel.completedCount()}",
-                    color = Color.White
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    style = MaterialTheme.typography.bodyMedium
                 )
 
                 Text(
                     text = "XP acumulado: ${viewModel.xpPoints()} XP",
-                    color = Color.White
+                    color = MaterialTheme.colorScheme.primary,
+                    style = MaterialTheme.typography.bodyLarge
                 )
             }
         }
 
         Text(
             text = "Continue firme. Pequenos hábitos criam grandes resultados.",
-            color = Color.White,
-            fontSize = 16.sp
+            color = MaterialTheme.colorScheme.onBackground,
+            fontSize = 16.sp,
+            style = MaterialTheme.typography.bodyMedium
         )
     }
 }

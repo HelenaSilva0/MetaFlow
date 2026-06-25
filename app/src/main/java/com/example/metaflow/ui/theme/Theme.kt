@@ -9,38 +9,55 @@ import androidx.compose.material3.dynamicDarkColorScheme
 import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.SideEffect
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalView
+import androidx.core.view.WindowCompat
 
 private val DarkColorScheme = darkColorScheme(
-    primary = MetaFlowPurple,
-    secondary = MetaFlowLightPurple,
-    tertiary = Pink80,
-    background = MetaFlowDark,
-    surface = MetaFlowCard,
-    onPrimary = MetaFlowWhite,
-    onSecondary = MetaFlowWhite,
-    onTertiary = MetaFlowWhite,
-    onBackground = MetaFlowWhite,
-    onSurface = MetaFlowWhite
+    primary = Primary,
+    onPrimary = Color.White,
+    primaryContainer = PrimaryActive,
+    onPrimaryContainer = Color.White,
+    secondary = TextSecondary,
+    onSecondary = Color.White,
+    secondaryContainer = SurfaceVariant,
+    onSecondaryContainer = Primary,
+    background = Color(0xFF1C1B1F),
+    onBackground = Background,
+    surface = Color(0xFF1C1B1F),
+    onSurface = Background,
+    surfaceVariant = Color(0xFF2B2930),
+    onSurfaceVariant = TextDisabled,
+    outline = IconInactive
 )
 
 private val LightColorScheme = lightColorScheme(
-    primary = Purple40,
-    secondary = PurpleGrey40,
-    tertiary = Pink40,
-    background = Color(0xFFFFFBFE),
-    surface = Color(0xFFFFFBFE),
+    primary = Primary,
     onPrimary = Color.White,
+    primaryContainer = PrimaryActive,
+    onPrimaryContainer = Color.White,
+    secondary = TextSecondary,
     onSecondary = Color.White,
+    secondaryContainer = SurfaceVariant,
+    onSecondaryContainer = Primary,
+    tertiary = PrimaryActive,
     onTertiary = Color.White,
-    onBackground = Color(0xFF1C1B1F),
-    onSurface = Color(0xFF1C1B1F)
+    background = Background,
+    onBackground = TextPrimary,
+    surface = Surface,
+    onSurface = TextPrimary,
+    surfaceVariant = SurfaceVariant,
+    onSurfaceVariant = TextSecondary,
+    outline = Outline,
+    outlineVariant = IconInactive,
 )
 
 @Composable
 fun MetaFlowTheme(
-    darkTheme: Boolean = true,
+    darkTheme: Boolean = false, // Mudado para false por padrão para seguir a identidade visual clean
     dynamicColor: Boolean = false,
     content: @Composable () -> Unit
 ) {
@@ -51,13 +68,22 @@ fun MetaFlowTheme(
         }
 
         darkTheme -> DarkColorScheme
-
         else -> LightColorScheme
+    }
+
+    val view = LocalView.current
+    if (!view.isInEditMode) {
+        SideEffect {
+            val window = (view.context as Activity).window
+            window.statusBarColor = colorScheme.background.toArgb()
+            WindowCompat.getInsetsController(window, view).isAppearanceLightStatusBars = !darkTheme
+        }
     }
 
     MaterialTheme(
         colorScheme = colorScheme,
         typography = Typography,
+        shapes = Shapes,
         content = content
     )
 }

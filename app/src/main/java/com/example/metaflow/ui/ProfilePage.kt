@@ -9,10 +9,10 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.metaflow.viewmodel.MainViewModel
@@ -26,20 +26,23 @@ fun ProfilePage(
     Column(
         modifier = modifier
             .fillMaxSize()
-            .background(Color(0xFF120026))
+            .background(MaterialTheme.colorScheme.background)
             .padding(20.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
         Text(
             text = "Perfil",
-            color = Color.White,
-            fontSize = 26.sp
+            color = MaterialTheme.colorScheme.onBackground,
+            fontSize = 26.sp,
+            style = MaterialTheme.typography.headlineMedium
         )
 
         Card(
             colors = CardDefaults.cardColors(
-                containerColor = Color(0xFF24103F)
+                containerColor = MaterialTheme.colorScheme.surface
             ),
+            elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+            shape = MaterialTheme.shapes.large,
             modifier = Modifier.fillMaxWidth()
         ) {
             Column(
@@ -47,26 +50,31 @@ fun ProfilePage(
             ) {
                 Text(
                     text = "Usuário MetaFlow",
-                    color = Color.White,
-                    fontSize = 20.sp
+                    color = MaterialTheme.colorScheme.onSurface,
+                    fontSize = 20.sp,
+                    style = MaterialTheme.typography.titleLarge
                 )
 
                 Text(
                     text = "metaflow@email.com",
-                    color = Color(0xFFD98CFF)
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    style = MaterialTheme.typography.bodyMedium
                 )
 
                 Text(
                     text = "XP: ${viewModel.xpPoints()} pontos",
-                    color = Color(0xFFD98CFF)
+                    color = MaterialTheme.colorScheme.primary,
+                    style = MaterialTheme.typography.bodyLarge
                 )
             }
         }
 
         Card(
             colors = CardDefaults.cardColors(
-                containerColor = Color(0xFF24103F)
+                containerColor = MaterialTheme.colorScheme.surface
             ),
+            elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+            shape = MaterialTheme.shapes.large,
             modifier = Modifier.fillMaxWidth()
         ) {
             Column(
@@ -74,24 +82,28 @@ fun ProfilePage(
             ) {
                 Text(
                     text = "Configurações",
-                    color = Color.White,
-                    fontSize = 18.sp
+                    color = MaterialTheme.colorScheme.onSurface,
+                    fontSize = 18.sp,
+                    style = MaterialTheme.typography.titleMedium
                 )
 
                 Text(
                     text = "Notificações ativadas",
-                    color = Color(0xFFD98CFF)
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    style = MaterialTheme.typography.bodyMedium
                 )
 
                 Text(
-                    text = "Tema: roxo escuro",
-                    color = Color(0xFFD98CFF)
+                    text = "Tema: Minimalista",
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    style = MaterialTheme.typography.bodyMedium
                 )
             }
         }
 
         Button(
             onClick = onLogout,
+            shape = MaterialTheme.shapes.extraLarge,
             modifier = Modifier.fillMaxWidth()
         ) {
             Text(text = "Sair")
