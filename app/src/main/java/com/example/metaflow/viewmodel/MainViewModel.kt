@@ -1,40 +1,27 @@
 package com.example.metaflow.viewmodel
 
-import androidx.compose.runtime.toMutableStateList
+import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
+import com.example.metaflow.db.fb.FBDatabase
+import com.example.metaflow.db.fb.FBGoal
+import com.example.metaflow.db.fb.FBUser
+import com.example.metaflow.db.fb.toFBGoal
 import com.example.metaflow.model.Goal
+import com.example.metaflow.model.User
 
-class MainViewModel : ViewModel() {
+class MainViewModel(private val db: FBDatabase) : ViewModel(), FBDatabase.Listener {
 
-    private val _goals = listOf(
-        Goal(
-            id = 1,
-            name = "Beber água",
-            category = "Saúde",
-            reminderTime = "08:00",
-            priority = "Alta",
-            recurrence = "Diário"
-        ),
-        Goal(
-            id = 2,
-            name = "Estudar 30 minutos",
-            category = "Estudos",
-            reminderTime = "19:00",
-            priority = "Média",
-            recurrence = "Seg a Sex"
-        ),
-        Goal(
-            id = 3,
-            name = "Fazer exercício",
-            category = "Rotina",
-            reminderTime = "17:30",
-            priority = "Alta",
-            recurrence = "Diário"
-        )
-    ).toMutableStateList()
+    private val _goals = mutableStateListOf<Goal>()
+    val goals get() = _goals.toList()
 
-    val goals
-        get() = _goals.toList()
+    private val _user = mutableStateOf<User?>(null)
+    val user: User? get() = _user.value
+
+    init {
+        db.setListener(this)
+    }
 
     fun addGoal(
         name: String,
@@ -60,19 +47,48 @@ class MainViewModel : ViewModel() {
             longitude = longitude
         )
 
-        _goals.add(newGoal)
+        db.add(newGoal.toFBGoal())
     }
 
     fun removeGoal(goal: Goal) {
-        _goals.remove(goal)
+        db.remove(goal.toFBGoal())
     }
 
     fun toggleGoal(goal: Goal) {
-        val index = _goals.indexOf(goal)
+        // Para o toggleGoal funcionar com Firestore, precisaríamos de um update no FBDatabase
+        // Por enquanto, vamos atualizar localmente ou adicionar update no FBDatabase se necessário.
+        // Seguindo a Prática 06, focamos em add/remove.
+        val updatedGoal = goal.copy(completed = !goal.completed)
+        db.add(updatedGoal.toFBGoal()) // O set() no Firestore com mesmo ID sobrescreve
+    }
 
-        if (index != -1) {
-            _goals[index] = goal.copy(completed = !goal.completed)
+    override fun onUserLoaded(user: FBUser) {
+        _user.value = user.toUser()
+    }
+
+    override fun onUserSignOut() {
+        _user.value = null
+        _goals.clear()
+    }
+
+    override fun onGoalAdded(goal: FBGoal) {
+        val newGoal = goal.toGoal()
+        if (_goals.none { it.name == newGoal.name }) {
+            _goals.add(newGoal)
         }
+    }
+
+    override fun onGoalUpdated(goal: FBGoal) {
+        val updatedGoal = goal.toGoal()
+        val index = _goals.indexOfFirst { it.name == updatedGoal.name }
+        if (index != -1) {
+            _goals[index] = updatedGoal
+        }
+    }
+
+    override fun onGoalRemoved(goal: FBGoal) {
+        val removedGoal = goal.toGoal()
+        _goals.removeIf { it.name == removedGoal.name }
     }
 
     fun completedCount(): Int {
@@ -90,5 +106,15 @@ class MainViewModel : ViewModel() {
 
     fun xpPoints(): Int {
         return completedCount() * 50
+    }
+}
+
+class MainViewModelFactory(private val db: FBDatabase) : ViewModelProvider.Factory {
+    override fun <T : ViewModel> create(modelClass: Class<T>): T {
+        if (modelClass.isAssignableFrom(MainViewModel::class.java)) {
+            @Suppress("UNCHECKED_CAST")
+            return MainViewModel(db) as T
+        }
+        throw IllegalArgumentException("Unknown ViewModel class")
     }
 }
