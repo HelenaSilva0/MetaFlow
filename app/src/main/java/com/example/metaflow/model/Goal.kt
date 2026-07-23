@@ -12,5 +12,6 @@ data class Goal(
     val latitude: Double? = null,
     val longitude: Double? = null,
     val completed: Boolean = false,
-    val completedAt: Long? = null
+    val completedAt: Long? = null,
+    val isMonitored: Boolean = false
 )

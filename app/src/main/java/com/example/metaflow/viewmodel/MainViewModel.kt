@@ -11,8 +11,9 @@ import com.example.metaflow.db.fb.toFBGoal
 import com.example.metaflow.db.fb.toFBUser
 import com.example.metaflow.model.Goal
 import com.example.metaflow.model.User
+import com.example.metaflow.monitor.GoalMonitor
 
-class MainViewModel(private val db: FBDatabase) : ViewModel(), FBDatabase.Listener {
+class MainViewModel(private val db: FBDatabase, private val monitor: GoalMonitor) : ViewModel(), FBDatabase.Listener {
 
     private val _goals = mutableStateListOf<Goal>()
     val goals get() = _goals.toList()
@@ -75,6 +76,10 @@ class MainViewModel(private val db: FBDatabase) : ViewModel(), FBDatabase.Listen
         db.remove(goal.toFBGoal())
     }
 
+    fun updateGoal(goal: Goal) {
+        db.update(goal.toFBGoal())
+    }
+
     fun toggleGoal(goal: Goal) {
         val now = System.currentTimeMillis()
         val updatedGoal = goal.copy(
@@ -83,10 +88,11 @@ class MainViewModel(private val db: FBDatabase) : ViewModel(), FBDatabase.Listen
         )
         db.add(updatedGoal.toFBGoal())
         
-        // Update XP: +50 for completion, -50 if uncompleted
+        // Update XP: +50 for completion, -50 if uncompleted. Ensure it's never negative.
         val xpChange = if (updatedGoal.completed) 50 else -50
         val currentXP = _user.value?.xp ?: 0
-        db.updateUserXP(currentXP + xpChange)
+        val newXP = (currentXP + xpChange).coerceAtLeast(0)
+        db.updateUserXP(newXP)
     }
 
     override fun onUserLoaded(user: FBUser) {
@@ -97,12 +103,14 @@ class MainViewModel(private val db: FBDatabase) : ViewModel(), FBDatabase.Listen
         _user.value = null
         _goals.clear()
         _ranking.clear()
+        monitor.cancelAll()
     }
 
     override fun onGoalAdded(goal: FBGoal) {
         val newGoal = goal.toGoal()
         if (_goals.none { it.id == newGoal.id }) {
             _goals.add(newGoal)
+            monitor.updateGoal(newGoal)
         }
     }
 
@@ -111,12 +119,14 @@ class MainViewModel(private val db: FBDatabase) : ViewModel(), FBDatabase.Listen
         val index = _goals.indexOfFirst { it.id == updatedGoal.id }
         if (index != -1) {
             _goals[index] = updatedGoal
+            monitor.updateGoal(updatedGoal)
         }
     }
 
     override fun onGoalRemoved(goal: FBGoal) {
         val removedGoal = goal.toGoal()
         _goals.removeIf { it.id == removedGoal.id }
+        monitor.cancelGoal(removedGoal)
     }
 
     fun completedCount(): Int {
@@ -135,13 +145,27 @@ class MainViewModel(private val db: FBDatabase) : ViewModel(), FBDatabase.Listen
     fun xpPoints(): Int {
         return _user.value?.xp ?: 0
     }
+
+    fun generateCommunity(onResult: (Boolean) -> Unit) {
+        val fakeUsers = listOf(
+            User("Ana Oliveira", "ana@flow.com", 3200),
+            User("Bruno Santos", "bruno@flow.com", 2850),
+            User("Carla Mendonça", "carla@flow.com", 2400),
+            User("Diego Lima", "diego@flow.com", 1950),
+            User("Elena Souza", "elena@flow.com", 1600),
+            User("Fabio Rocha", "fabio@flow.com", 1200),
+            User("Gabi Costa", "gabi@flow.com", 850),
+            User("Hugo Silva", "hugo@flow.com", 500)
+        )
+        db.seedUsers(fakeUsers.map { it.toFBUser() }, onResult)
+    }
 }
 
-class MainViewModelFactory(private val db: FBDatabase) : ViewModelProvider.Factory {
+class MainViewModelFactory(private val db: FBDatabase, private val monitor: GoalMonitor) : ViewModelProvider.Factory {
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
         if (modelClass.isAssignableFrom(MainViewModel::class.java)) {
             @Suppress("UNCHECKED_CAST")
-            return MainViewModel(db) as T
+            return MainViewModel(db, monitor) as T
         }
         throw IllegalArgumentException("Unknown ViewModel class")
     }

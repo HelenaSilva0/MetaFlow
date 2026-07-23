@@ -1,5 +1,6 @@
 package com.example.metaflow
 
+import android.content.Intent
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -15,16 +16,19 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.core.util.Consumer
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavDestination.Companion.hasRoute
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.example.metaflow.db.fb.FBDatabase
+import com.example.metaflow.monitor.GoalMonitor
 import com.example.metaflow.ui.GoalDialog
 import com.example.metaflow.ui.nav.BottomNavBar
 import com.example.metaflow.ui.nav.BottomNavItem
@@ -45,9 +49,21 @@ class MainActivity : ComponentActivity() {
 
         setContent {
             val fbDB = remember { FBDatabase() }
+            val monitor = remember { GoalMonitor(this) }
             val viewModel: MainViewModel = viewModel(
-                factory = MainViewModelFactory(fbDB)
+                factory = MainViewModelFactory(fbDB, monitor)
             )
+
+            DisposableEffect(Unit) {
+                val listener = Consumer<Intent> { intent ->
+                    intent.getStringExtra("goal")?.let {
+                        // Lógica para quando a notificação é clicada
+                    }
+                }
+                addOnNewIntentListener(listener)
+                onDispose { removeOnNewIntentListener(listener) }
+            }
+
             val navController = rememberNavController()
             val navBackStackEntry by navController.currentBackStackEntryAsState()
             val currentDestination = navBackStackEntry?.destination

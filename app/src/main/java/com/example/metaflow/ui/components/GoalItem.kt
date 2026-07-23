@@ -10,6 +10,8 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Notifications
+import androidx.compose.material.icons.outlined.Notifications
 import androidx.compose.material.icons.outlined.RadioButtonUnchecked
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -28,7 +30,8 @@ fun GoalItem(
     goal: Goal,
     onClick: () -> Unit,
     onClose: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    onToggleMonitored: ((Boolean) -> Unit)? = null
 ) {
     Card(
         modifier = modifier
@@ -61,11 +64,30 @@ fun GoalItem(
             Column(
                 modifier = Modifier.weight(1f)
             ) {
-                Text(
-                    text = goal.name,
-                    color = MaterialTheme.colorScheme.onSurface,
-                    style = MaterialTheme.typography.bodyLarge
-                )
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text(
+                        text = goal.name,
+                        color = MaterialTheme.colorScheme.onSurface,
+                        style = MaterialTheme.typography.bodyLarge,
+                        modifier = Modifier.weight(1f)
+                    )
+                    
+                    val icon = if (goal.isMonitored) Icons.Filled.Notifications else Icons.Outlined.Notifications
+                    val iconModifier = Modifier.size(24.dp).let {
+                        if (onToggleMonitored != null) {
+                            it.clickable {
+                                onToggleMonitored(!goal.isMonitored)
+                            }
+                        } else it
+                    }
+
+                    Icon(
+                        imageVector = icon,
+                        contentDescription = "Monitorada?",
+                        tint = if (goal.isMonitored) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline,
+                        modifier = iconModifier
+                    )
+                }
                 Text(
                     text = "${goal.category} • ${goal.reminderTime} • ${goal.priority}",
                     color = MaterialTheme.colorScheme.onSurfaceVariant,

@@ -1,5 +1,6 @@
 package com.example.metaflow.ui
 
+import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
@@ -26,6 +27,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -36,6 +38,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -50,6 +53,7 @@ fun RankingPage(
     val scrollState = rememberScrollState()
     val ranking = viewModel.ranking
     val currentUser = viewModel.user
+    val context = LocalContext.current
 
     Column(
         modifier = modifier
@@ -63,20 +67,23 @@ fun RankingPage(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(24.dp)
         ) {
-            // 2. Filtros no topo (simplificados para esta versão)
-            Text(
-                text = "Ranking Global",
-                style = MaterialTheme.typography.headlineSmall,
-                color = MaterialTheme.colorScheme.primary,
-                fontWeight = FontWeight.Bold
-            )
-
-            // 3. Área de pódio (Dinamizada)
+            // Seção 1: Líderes do MetaFlow
+            RankingSectionHeader(title = "Líderes do MetaFlow")
+            
             if (ranking.isNotEmpty()) {
                 PodiumSection(ranking)
+            } else {
+                Text(
+                    text = "O pódio está aguardando os primeiros campeões!",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.secondary,
+                    modifier = Modifier.padding(vertical = 16.dp)
+                )
             }
 
-            // 4. Card destacado do usuário
+            // Seção 2: Seu Desempenho
+            RankingSectionHeader(title = "Seu Desempenho")
+            
             currentUser?.let { user ->
                 val myRank = ranking.indexOfFirst { it.email == user.email } + 1
                 UserHighlightCard(
@@ -87,22 +94,75 @@ fun RankingPage(
                 )
             }
 
-            // 5. Lista de ranking (Dinamizada)
-            Column(
-                verticalArrangement = Arrangement.spacedBy(12.dp),
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                ranking.drop(3).forEachIndexed { index, user ->
-                    RankingItemCard(
-                        position = (index + 4).toString(),
-                        name = user.name,
-                        points = user.xp.toString()
-                    )
+            // Seção 3: Classificação Global
+            RankingSectionHeader(title = "Classificação Global")
+            
+            if (ranking.size > 3) {
+                Column(
+                    verticalArrangement = Arrangement.spacedBy(12.dp),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    ranking.drop(3).forEachIndexed { index, user ->
+                        RankingItemCard(
+                            position = (index + 4).toString(),
+                            name = user.name,
+                            points = user.xp.toString()
+                        )
+                    }
+                }
+            } else {
+                Text(
+                    text = "A comunidade está crescendo! Convide novos membros abaixo.",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.padding(vertical = 8.dp)
+                )
+            }
+
+            // Botão para popular o ranking
+            if (ranking.size < 5) {
+                Button(
+                    onClick = { 
+                        viewModel.generateCommunity { success ->
+                            if (success) {
+                                Toast.makeText(context, "Comunidade convidada com sucesso!", Toast.LENGTH_SHORT).show()
+                            } else {
+                                Toast.makeText(context, "Erro ao convidar: Verifique as regras do Firestore.", Toast.LENGTH_LONG).show()
+                            }
+                        }
+                    },
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.secondaryContainer,
+                        contentColor = MaterialTheme.colorScheme.onSecondaryContainer
+                    ),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text("Convidar Membros da Comunidade")
                 }
             }
             
             Spacer(modifier = Modifier.height(20.dp))
         }
+    }
+}
+
+@Composable
+fun RankingSectionHeader(title: String) {
+    Column(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalAlignment = Alignment.Start
+    ) {
+        Text(
+            text = title,
+            style = MaterialTheme.typography.titleMedium,
+            color = MaterialTheme.colorScheme.primary,
+            fontWeight = FontWeight.Bold
+        )
+        HorizontalDivider(
+            modifier = Modifier.padding(top = 4.dp),
+            thickness = 1.dp,
+            color = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f)
+        )
     }
 }
 
@@ -126,6 +186,8 @@ fun PodiumSection(ranking: List<com.example.metaflow.model.User>) {
                 blockColor = Color(0xFFC0C0C0), // Prata
                 textColor = Color(0xFF424242)
             )
+        } else {
+            EmptyPodiumMember(blockHeight = 70.dp, blockColor = Color(0xFFE0E0E0))
         }
 
         // 1º Lugar
@@ -153,7 +215,29 @@ fun PodiumSection(ranking: List<com.example.metaflow.model.User>) {
                 blockColor = Color(0xFFCD7F32), // Bronze
                 textColor = Color(0xFF3E2723)
             )
+        } else {
+            EmptyPodiumMember(blockHeight = 50.dp, blockColor = Color(0xFFF5F5F5))
         }
+    }
+}
+
+@Composable
+fun EmptyPodiumMember(blockHeight: Dp, blockColor: Color) {
+    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+        Box(
+            modifier = Modifier
+                .size(40.dp)
+                .clip(CircleShape)
+                .background(Color.LightGray.copy(alpha = 0.3f))
+        )
+        Spacer(modifier = Modifier.height(24.dp))
+        Surface(
+            modifier = Modifier
+                .width(80.dp)
+                .height(blockHeight),
+            color = blockColor,
+            shape = RoundedCornerShape(topStart = 12.dp, topEnd = 12.dp)
+        ) {}
     }
 }
 

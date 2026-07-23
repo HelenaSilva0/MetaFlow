@@ -19,6 +19,8 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.KeyboardArrowDown
+import androidx.compose.material.icons.filled.Notifications
+import androidx.compose.material.icons.outlined.Notifications
 import androidx.compose.material.icons.outlined.RadioButtonUnchecked
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -227,7 +229,7 @@ fun GoalHistoryItem(goal: Goal) {
             modifier = Modifier.size(20.dp)
         )
         Spacer(modifier = Modifier.width(12.dp))
-        Column {
+        Column(modifier = Modifier.weight(1f)) {
             Text(
                 text = goal.name,
                 style = MaterialTheme.typography.bodyMedium,
@@ -239,5 +241,13 @@ fun GoalHistoryItem(goal: Goal) {
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
+        
+        val icon = if (goal.isMonitored) Icons.Filled.Notifications else Icons.Outlined.Notifications
+        Icon(
+            imageVector = icon,
+            contentDescription = "Monitorada?",
+            tint = if (goal.isMonitored) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline,
+            modifier = Modifier.size(18.dp)
+        )
     }
 }

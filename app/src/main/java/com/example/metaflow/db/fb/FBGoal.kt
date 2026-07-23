@@ -15,6 +15,7 @@ class FBGoal {
     var longitude: Double? = null
     var completed: Boolean = false
     var completedAt: Long? = null
+    var monitored: Boolean = false
 
     fun toGoal(): Goal {
         return Goal(
@@ -29,7 +30,8 @@ class FBGoal {
             latitude = latitude,
             longitude = longitude,
             completed = completed,
-            completedAt = completedAt
+            completedAt = completedAt,
+            isMonitored = monitored
         )
     }
 }
@@ -48,5 +50,6 @@ fun Goal.toFBGoal(): FBGoal {
     fbGoal.longitude = this.longitude
     fbGoal.completed = this.completed
     fbGoal.completedAt = this.completedAt
+    fbGoal.monitored = this.isMonitored
     return fbGoal
 }
