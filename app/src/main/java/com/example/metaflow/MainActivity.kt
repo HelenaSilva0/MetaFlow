@@ -51,6 +51,10 @@ class MainActivity : ComponentActivity() {
             val navController = rememberNavController()
             val navBackStackEntry by navController.currentBackStackEntryAsState()
             val currentDestination = navBackStackEntry?.destination
+            
+            val isAuthScreen = currentDestination?.hasRoute(Route.Login::class) == true || 
+                             currentDestination?.hasRoute(Route.Register::class) == true
+
             var showDialog by remember { mutableStateOf(false) }
 
             MetaFlowTheme {
@@ -81,34 +85,38 @@ class MainActivity : ComponentActivity() {
 
                 Scaffold(
                     topBar = {
-                        TopAppBar(
-                            title = {
-                                val name = viewModel.user?.name ?: "[carregando...]"
-                                Text(
-                                    text = "Bem-vindo/a! $name",
-                                    style = MaterialTheme.typography.titleLarge,
-                                    color = MaterialTheme.colorScheme.primary
-                                )
-                            }
-                        )
+                        if (!isAuthScreen) {
+                            TopAppBar(
+                                title = {
+                                    val name = viewModel.user?.name ?: "[carregando...]"
+                                    Text(
+                                        text = "Bem-vindo/a! $name",
+                                        style = MaterialTheme.typography.titleLarge,
+                                        color = MaterialTheme.colorScheme.primary
+                                    )
+                                }
+                            )
+                        }
                     },
                     bottomBar = {
-                        val items = listOf(
-                            BottomNavItem.HomeButton,
-                            BottomNavItem.RankingButton,
-                            BottomNavItem.ProgressButton,
-                            BottomNavItem.HistoryButton,
-                            BottomNavItem.ProfileButton
-                        )
+                        if (!isAuthScreen) {
+                            val items = listOf(
+                                BottomNavItem.HomeButton,
+                                BottomNavItem.RankingButton,
+                                BottomNavItem.ProgressButton,
+                                BottomNavItem.HistoryButton,
+                                BottomNavItem.ProfileButton
+                            )
 
-                        BottomNavBar(
-                            navController = navController,
-                            items = items
-                        )
+                            BottomNavBar(
+                                navController = navController,
+                                items = items
+                            )
+                        }
                     },
                     floatingActionButton = {
                         // O botão adicionar meta deve aparecer apenas na tela de inicio
-                        if (currentDestination?.hasRoute(Route.Home::class) == true) {
+                        if (currentDestination?.hasRoute(Route.Home::class) == true && !isAuthScreen) {
                             FloatingActionButton(
                                 onClick = {
                                     showDialog = true
@@ -128,12 +136,22 @@ class MainActivity : ComponentActivity() {
                     Box(
                         modifier = Modifier.padding(innerPadding)
                     ) {
+                        val startRoute = if (Firebase.auth.currentUser != null) Route.Home else Route.Login
+                        
                         MainNavHost(
                             navController = navController,
                             viewModel = viewModel,
+                            startDestination = startRoute,
                             onLogout = {
                                 Firebase.auth.signOut()
-                                finish()
+                                navController.navigate(Route.Login) {
+                                    popUpTo(0)
+                                }
+                            },
+                            onLoginSuccess = {
+                                navController.navigate(Route.Home) {
+                                    popUpTo(Route.Login) { inclusive = true }
+                                }
                             }
                         )
                     }

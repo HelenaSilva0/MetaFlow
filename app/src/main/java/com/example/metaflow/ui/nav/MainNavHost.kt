@@ -7,9 +7,11 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import com.example.metaflow.ui.HistoryPage
 import com.example.metaflow.ui.HomePage
+import com.example.metaflow.ui.LoginPage
 import com.example.metaflow.ui.ProfilePage
 import com.example.metaflow.ui.ProgressPage
 import com.example.metaflow.ui.RankingPage
+import com.example.metaflow.ui.RegisterPage
 import com.example.metaflow.viewmodel.MainViewModel
 
 @Composable
@@ -17,12 +19,37 @@ fun MainNavHost(
     navController: NavHostController,
     viewModel: MainViewModel,
     modifier: Modifier = Modifier,
-    onLogout: () -> Unit
+    startDestination: Route = Route.Login,
+    onLogout: () -> Unit,
+    onLoginSuccess: () -> Unit
 ) {
     NavHost(
         navController = navController,
-        startDestination = Route.Home
+        startDestination = startDestination
     ) {
+        composable<Route.Login> {
+            LoginPage(
+                onLogin = { email, password ->
+                    viewModel.login(email, password) { success ->
+                        if (success) onLoginSuccess()
+                    }
+                },
+                onRegister = {
+                    navController.navigate(Route.Register)
+                }
+            )
+        }
+
+        composable<Route.Register> {
+            RegisterPage(
+                onRegister = { name, email, password ->
+                    viewModel.register(name, email, password) { success ->
+                        if (success) navController.navigate(Route.Login)
+                    }
+                }
+            )
+        }
+
         composable<Route.Home> {
             HomePage(
                 modifier = modifier,

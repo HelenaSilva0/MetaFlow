@@ -48,6 +48,8 @@ fun RankingPage(
     viewModel: MainViewModel
 ) {
     val scrollState = rememberScrollState()
+    val ranking = viewModel.ranking
+    val currentUser = viewModel.user
 
     Column(
         modifier = modifier
@@ -61,55 +63,42 @@ fun RankingPage(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(24.dp)
         ) {
-            // 2. Filtros no topo
-            Row(
-                horizontalArrangement = Arrangement.spacedBy(12.dp),
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Spacer(modifier = Modifier.weight(1f))
-                Button(
-                    onClick = { /* Filtro Geral */ },
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = MaterialTheme.colorScheme.primary
-                    ),
-                    shape = RoundedCornerShape(24.dp),
-                    modifier = Modifier.height(40.dp)
-                ) {
-                    Text("Geral", color = Color.White)
-                }
-                Button(
-                    onClick = { /* Filtro Amigos */ },
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = MaterialTheme.colorScheme.surfaceVariant
-                    ),
-                    shape = RoundedCornerShape(24.dp),
-                    modifier = Modifier.height(40.dp)
-                ) {
-                    Text("Amigos", color = MaterialTheme.colorScheme.onSurfaceVariant)
-                }
-                Spacer(modifier = Modifier.weight(1f))
-            }
-
-            // 3. Área de pódio
-            PodiumSection()
-
-            // 4. Card destacado do usuário
-            UserHighlightCard(
-                rank = "14",
-                name = "Você (Explorer)",
-                status = "Subindo no ranking",
-                points = "2.450"
+            // 2. Filtros no topo (simplificados para esta versão)
+            Text(
+                text = "Ranking Global",
+                style = MaterialTheme.typography.headlineSmall,
+                color = MaterialTheme.colorScheme.primary,
+                fontWeight = FontWeight.Bold
             )
 
-            // 5. Lista de ranking
+            // 3. Área de pódio (Dinamizada)
+            if (ranking.isNotEmpty()) {
+                PodiumSection(ranking)
+            }
+
+            // 4. Card destacado do usuário
+            currentUser?.let { user ->
+                val myRank = ranking.indexOfFirst { it.email == user.email } + 1
+                UserHighlightCard(
+                    rank = if (myRank > 0) myRank.toString() else "-",
+                    name = "Você (${user.name})",
+                    status = if (myRank <= 3 && myRank > 0) "No pódio!" else "Continue evoluindo!",
+                    points = user.xp.toString()
+                )
+            }
+
+            // 5. Lista de ranking (Dinamizada)
             Column(
                 verticalArrangement = Arrangement.spacedBy(12.dp),
                 modifier = Modifier.fillMaxWidth()
             ) {
-                RankingItemCard(position = "4", name = "André Silva", points = "2.200")
-                RankingItemCard(position = "5", name = "Carla Souza", points = "1.980")
-                RankingItemCard(position = "6", name = "Marcos Oliveira", points = "1.650")
+                ranking.drop(3).forEachIndexed { index, user ->
+                    RankingItemCard(
+                        position = (index + 4).toString(),
+                        name = user.name,
+                        points = user.xp.toString()
+                    )
+                }
             }
             
             Spacer(modifier = Modifier.height(20.dp))
@@ -118,7 +107,7 @@ fun RankingPage(
 }
 
 @Composable
-fun PodiumSection() {
+fun PodiumSection(ranking: List<com.example.metaflow.model.User>) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -127,38 +116,44 @@ fun PodiumSection() {
         verticalAlignment = Alignment.Bottom
     ) {
         // 2º Lugar
-        PodiumMember(
-            position = "2",
-            name = "Paula",
-            points = "2.100",
-            avatarScale = 0.85f,
-            blockHeight = 100.dp,
-            blockColor = Color(0xFFC0C0C0), // Prata
-            textColor = Color(0xFF424242)
-        )
+        if (ranking.size >= 2) {
+            PodiumMember(
+                position = "2",
+                name = ranking[1].name,
+                points = ranking[1].xp.toString(),
+                avatarScale = 0.85f,
+                blockHeight = 100.dp,
+                blockColor = Color(0xFFC0C0C0), // Prata
+                textColor = Color(0xFF424242)
+            )
+        }
 
         // 1º Lugar
-        PodiumMember(
-            position = "1",
-            name = "Você",
-            points = "2.450",
-            avatarScale = 1f,
-            blockHeight = 140.dp,
-            blockColor = Color(0xFFFFD700), // Dourado
-            textColor = Color(0xFF5D4037),
-            hasCrown = true
-        )
+        if (ranking.isNotEmpty()) {
+            PodiumMember(
+                position = "1",
+                name = ranking[0].name,
+                points = ranking[0].xp.toString(),
+                avatarScale = 1f,
+                blockHeight = 140.dp,
+                blockColor = Color(0xFFFFD700), // Dourado
+                textColor = Color(0xFF5D4037),
+                hasCrown = true
+            )
+        }
 
         // 3º Lugar
-        PodiumMember(
-            position = "3",
-            name = "Marcos",
-            points = "1.850",
-            avatarScale = 0.85f,
-            blockHeight = 80.dp,
-            blockColor = Color(0xFFCD7F32), // Bronze
-            textColor = Color(0xFF3E2723)
-        )
+        if (ranking.size >= 3) {
+            PodiumMember(
+                position = "3",
+                name = ranking[2].name,
+                points = ranking[2].xp.toString(),
+                avatarScale = 0.85f,
+                blockHeight = 80.dp,
+                blockColor = Color(0xFFCD7F32), // Bronze
+                textColor = Color(0xFF3E2723)
+            )
+        }
     }
 }
 

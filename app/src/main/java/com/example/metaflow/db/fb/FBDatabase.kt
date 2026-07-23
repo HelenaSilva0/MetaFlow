@@ -59,15 +59,28 @@ class FBDatabase {
         db.collection("users").document(uid).set(user)
     }
 
+    fun login(email: String, password: String, onResult: (Boolean) -> Unit) {
+        auth.signInWithEmailAndPassword(email, password)
+            .addOnCompleteListener { task ->
+                onResult(task.isSuccessful)
+            }
+    }
+
+    fun registerAuth(email: String, password: String, onResult: (Boolean) -> Unit) {
+        auth.createUserWithEmailAndPassword(email, password)
+            .addOnCompleteListener { task ->
+                onResult(task.isSuccessful)
+            }
+    }
+
     fun add(goal: FBGoal) {
         if (auth.currentUser == null)
             throw RuntimeException("User not logged in!")
         if (goal.name == null || goal.name!!.isEmpty())
             throw RuntimeException("Goal with null or empty name!")
         val uid = auth.currentUser!!.uid
-        // Usamos o nome como ID para simplificar conforme a prática, 
-        // mas idealmente usaríamos um ID único ou goal.id.toString()
-        val documentId = goal.name!!
+        val documentId = goal.id?.toString() ?: db.collection("users").document(uid).collection("goals").document().id
+        goal.id = documentId
         db.collection("users").document(uid).collection("goals")
             .document(documentId).set(goal)
     }
@@ -75,10 +88,26 @@ class FBDatabase {
     fun remove(goal: FBGoal) {
         if (auth.currentUser == null)
             throw RuntimeException("User not logged in!")
-        if (goal.name == null || goal.name!!.isEmpty())
-            throw RuntimeException("Goal with null or empty name!")
+        val goalIdStr = goal.id?.toString()
+        if (goalIdStr == null || goalIdStr.isEmpty())
+            throw RuntimeException("Goal with null or empty ID!")
         val uid = auth.currentUser!!.uid
         db.collection("users").document(uid).collection("goals")
-            .document(goal.name!!).delete()
+            .document(goalIdStr).delete()
+    }
+
+    fun updateUserXP(xp: Int) {
+        if (auth.currentUser == null) return
+        val uid = auth.currentUser!!.uid
+        db.collection("users").document(uid).update("xp", xp)
+    }
+
+    fun getAllUsers(onResult: (List<FBUser>) -> Unit) {
+        db.collection("users")
+            .orderBy("xp", com.google.firebase.firestore.Query.Direction.DESCENDING)
+            .addSnapshotListener { snapshots, _ ->
+                val users = snapshots?.toObjects(FBUser::class.java) ?: emptyList()
+                onResult(users)
+            }
     }
 }

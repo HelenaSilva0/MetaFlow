@@ -46,6 +46,15 @@ fun HistoryPage(
 ) {
     val goals = viewModel.goals
     val scrollState = rememberScrollState()
+    
+    val now = System.currentTimeMillis()
+    val dayMillis = 24 * 60 * 60 * 1000L
+    val weekMillis = 7 * dayMillis
+    val monthMillis = 30 * dayMillis
+
+    val todayGoals = goals.filter { it.completed && it.completedAt != null && (now - it.completedAt) < dayMillis }
+    val weekGoals = goals.filter { it.completed && it.completedAt != null && (now - it.completedAt) in (dayMillis + 1)..weekMillis }
+    val monthGoals = goals.filter { it.completed && it.completedAt != null && (now - it.completedAt) in (weekMillis + 1)..monthMillis }
 
     Column(
         modifier = modifier
@@ -70,18 +79,18 @@ fun HistoryPage(
 
         HistoryCard(
             title = "Hoje",
-            summary = "${viewModel.completedCount()} de ${viewModel.totalCount()} metas concluídas"
+            summary = "${todayGoals.size} metas concluídas"
         ) {
-            if (goals.isEmpty()) {
+            if (todayGoals.isEmpty()) {
                 Text(
-                    text = "Nenhuma meta para hoje.",
+                    text = "Nenhuma meta concluída hoje.",
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             } else {
-                goals.forEachIndexed { index, goal ->
+                todayGoals.forEachIndexed { index, goal ->
                     GoalHistoryItem(goal)
-                    if (index < goals.size - 1) {
+                    if (index < todayGoals.size - 1) {
                         HorizontalDivider(
                             modifier = Modifier.padding(vertical = 8.dp),
                             thickness = 0.5.dp,
@@ -94,24 +103,50 @@ fun HistoryPage(
 
         HistoryCard(
             title = "Esta semana",
-            summary = "Desempenho estável"
+            summary = "${weekGoals.size} metas concluídas"
         ) {
-            Text(
-                text = "Relatório semanal detalhado será exibido aqui.",
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
+            if (weekGoals.isEmpty()) {
+                Text(
+                    text = "Nenhuma meta concluída nesta semana.",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            } else {
+                weekGoals.forEachIndexed { index, goal ->
+                    GoalHistoryItem(goal)
+                    if (index < weekGoals.size - 1) {
+                        HorizontalDivider(
+                            modifier = Modifier.padding(vertical = 8.dp),
+                            thickness = 0.5.dp,
+                            color = MaterialTheme.colorScheme.outlineVariant
+                        )
+                    }
+                }
+            }
         }
 
         HistoryCard(
             title = "Este mês",
-            summary = "Progresso: ${viewModel.progressPercent()}%"
+            summary = "${monthGoals.size} metas concluídas"
         ) {
-            Text(
-                text = "Estatísticas mensais de hábitos serão exibidas aqui.",
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
+            if (monthGoals.isEmpty()) {
+                Text(
+                    text = "Nenhuma meta concluída este mês.",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            } else {
+                monthGoals.forEachIndexed { index, goal ->
+                    GoalHistoryItem(goal)
+                    if (index < monthGoals.size - 1) {
+                        HorizontalDivider(
+                            modifier = Modifier.padding(vertical = 8.dp),
+                            thickness = 0.5.dp,
+                            color = MaterialTheme.colorScheme.outlineVariant
+                        )
+                    }
+                }
+            }
         }
         
         Spacer(modifier = Modifier.height(16.dp))

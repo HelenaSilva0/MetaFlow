@@ -1,7 +1,7 @@
 package com.example.metaflow.model
 
 data class Goal(
-    val id: Int,
+    val id: String,
     val name: String,
     val category: String,
     val reminderTime: String,
@@ -11,5 +11,6 @@ data class Goal(
     val location: String = "",
     val latitude: Double? = null,
     val longitude: Double? = null,
-    val completed: Boolean = false
+    val completed: Boolean = false,
+    val completedAt: Long? = null
 )

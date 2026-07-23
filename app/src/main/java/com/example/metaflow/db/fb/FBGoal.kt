@@ -3,7 +3,7 @@ package com.example.metaflow.db.fb
 import com.example.metaflow.model.Goal
 
 class FBGoal {
-    var id: Int = 0
+    var id: Any? = null
     var name: String? = null
     var category: String? = null
     var reminderTime: String? = null
@@ -14,10 +14,11 @@ class FBGoal {
     var latitude: Double? = null
     var longitude: Double? = null
     var completed: Boolean = false
+    var completedAt: Long? = null
 
     fun toGoal(): Goal {
         return Goal(
-            id = id,
+            id = id?.toString() ?: "",
             name = name ?: "",
             category = category ?: "Geral",
             reminderTime = reminderTime ?: "--:--",
@@ -27,7 +28,8 @@ class FBGoal {
             location = location ?: "",
             latitude = latitude,
             longitude = longitude,
-            completed = completed
+            completed = completed,
+            completedAt = completedAt
         )
     }
 }
@@ -45,5 +47,6 @@ fun Goal.toFBGoal(): FBGoal {
     fbGoal.latitude = this.latitude
     fbGoal.longitude = this.longitude
     fbGoal.completed = this.completed
+    fbGoal.completedAt = this.completedAt
     return fbGoal
 }
