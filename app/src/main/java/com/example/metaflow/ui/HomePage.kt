@@ -1,5 +1,12 @@
 package com.example.metaflow.ui
 
+import android.Manifest
+import android.content.pm.PackageManager
+import android.os.Build
+import android.widget.Toast
+import androidx.activity.compose.LocalActivity
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -8,6 +15,8 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.LinearProgressIndicator
@@ -15,8 +24,11 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.content.ContextCompat
+import com.example.metaflow.ui.components.GoalItem
 import com.example.metaflow.viewmodel.MainViewModel
 
 @Composable
@@ -25,11 +37,25 @@ fun HomePage(
     viewModel: MainViewModel
 ) {
     val progress = viewModel.progressPercent()
+    val goals = viewModel.goals
+    val activity = LocalActivity.current
+    val context = LocalContext.current
+    val scrollState = rememberScrollState()
+
+    // Launcher para permissão de notificação (Android 13+)
+    val permissionLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { isGranted ->
+        if (!isGranted) {
+            Toast.makeText(context, "As notificações foram desativadas para o MetaFlow.", Toast.LENGTH_LONG).show()
+        }
+    }
 
     Column(
         modifier = modifier
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.background)
+            .verticalScroll(scrollState)
             .padding(20.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
@@ -123,6 +149,61 @@ fun HomePage(
                 )
             }
         }
+
+        Text(
+            text = "Minhas Metas",
+            color = MaterialTheme.colorScheme.onBackground,
+            fontSize = 20.sp,
+            style = MaterialTheme.typography.titleLarge,
+            modifier = Modifier.padding(top = 8.dp)
+        )
+
+        if (goals.isEmpty()) {
+            Text(
+                text = "Você ainda não tem metas cadastradas.",
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                style = MaterialTheme.typography.bodyMedium
+            )
+        } else {
+            goals.forEach { goal ->
+                GoalItem(
+                    goal = goal,
+                    onClick = {
+                        viewModel.toggleGoal(goal)
+                        Toast.makeText(
+                            activity,
+                            "Meta atualizada: ${goal.name}",
+                            Toast.LENGTH_SHORT
+                        ).show()
+                    },
+                    onClose = {
+                        viewModel.removeGoal(goal)
+                        Toast.makeText(
+                            activity,
+                            "Meta removida: ${goal.name}",
+                            Toast.LENGTH_SHORT
+                        ).show()
+                    },
+                    onToggleMonitored = { newValue ->
+                        // Verifica permissão se estiver tentando ativar
+                        if (newValue && Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                            val hasPermission = ContextCompat.checkSelfPermission(
+                                context, Manifest.permission.POST_NOTIFICATIONS
+                            ) == PackageManager.PERMISSION_GRANTED
+                            
+                            if (!hasPermission) {
+                                permissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+                            }
+                        }
+                        
+                        // Atualiza a meta (o monitoramento só agendará no Worker se a permissão existir no disparo)
+                        viewModel.updateGoal(goal.copy(isMonitored = newValue))
+                    }
+                )
+            }
+        }
+
+        Spacer(modifier = Modifier.height(8.dp))
 
         Text(
             text = "Continue firme. Pequenos hábitos criam grandes resultados.",

@@ -23,6 +23,8 @@ fun ProfilePage(
     viewModel: MainViewModel,
     onLogout: () -> Unit
 ) {
+    val user = viewModel.user
+    
     Column(
         modifier = modifier
             .fillMaxSize()
@@ -49,20 +51,20 @@ fun ProfilePage(
                 modifier = Modifier.padding(18.dp)
             ) {
                 Text(
-                    text = "Usuário MetaFlow",
+                    text = user?.name ?: "Usuário MetaFlow",
                     color = MaterialTheme.colorScheme.onSurface,
                     fontSize = 20.sp,
                     style = MaterialTheme.typography.titleLarge
                 )
 
                 Text(
-                    text = "metaflow@email.com",
+                    text = user?.email ?: "carregando email...",
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     style = MaterialTheme.typography.bodyMedium
                 )
 
                 Text(
-                    text = "XP: ${viewModel.xpPoints()} pontos",
+                    text = "XP: ${user?.xp ?: 0} pontos",
                     color = MaterialTheme.colorScheme.primary,
                     style = MaterialTheme.typography.bodyLarge
                 )
