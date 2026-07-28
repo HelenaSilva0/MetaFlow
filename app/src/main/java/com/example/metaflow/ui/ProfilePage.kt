@@ -19,11 +19,13 @@ import androidx.compose.material.icons.filled.Badge
 import androidx.compose.material.icons.filled.Cancel
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Email
+import androidx.compose.material.icons.filled.EmojiEvents
 import androidx.compose.material.icons.filled.Logout
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.Palette
 import androidx.compose.material.icons.filled.Save
 import androidx.compose.material.icons.filled.Star
+import androidx.compose.material.icons.filled.Whatshot
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -45,6 +47,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.metaflow.viewmodel.MainViewModel
@@ -195,24 +198,63 @@ fun ProfilePage(
 
                     Row(
                         modifier = Modifier.fillMaxWidth(),
-                        verticalAlignment = Alignment.CenterVertically
+                        horizontalArrangement = Arrangement.SpaceAround
                     ) {
-                        Icon(
-                            Icons.Default.Star,
-                            null,
-                            tint = Color(0xFFFFD700),
-                            modifier = Modifier.size(24.dp)
+                        StatsColumn(
+                            icon = Icons.Default.Star,
+                            iconColor = Color(0xFFFFD700),
+                            value = "${user?.xp ?: 0}",
+                            label = "XP"
                         )
-                        Spacer(Modifier.size(8.dp))
-                        Text(
-                            text = "XP Acumulado: ",
-                            style = MaterialTheme.typography.titleMedium
+                        StatsColumn(
+                            icon = Icons.Default.Whatshot,
+                            iconColor = Color(0xFFFF5722),
+                            value = "${user?.streak ?: 0}",
+                            label = "Streak"
                         )
-                        Text(
-                            text = "${user?.xp ?: 0} pontos",
-                            color = MaterialTheme.colorScheme.primary,
-                            style = MaterialTheme.typography.titleMedium
+                        StatsColumn(
+                            icon = Icons.Default.EmojiEvents,
+                            iconColor = Color(0xFF4CAF50),
+                            value = "${user?.totalCompleted ?: 0}",
+                            label = "Metas"
                         )
+                    }
+                }
+            }
+        }
+
+        Text(
+            text = "Insígnias Conquistadas",
+            color = MaterialTheme.colorScheme.onBackground,
+            fontSize = 20.sp,
+            style = MaterialTheme.typography.titleLarge,
+            modifier = Modifier.padding(top = 8.dp)
+        )
+
+        Card(
+            colors = CardDefaults.cardColors(
+                containerColor = MaterialTheme.colorScheme.surface
+            ),
+            elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+            shape = MaterialTheme.shapes.large,
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            if (user?.badges.isNullOrEmpty()) {
+                Text(
+                    text = "Você ainda não conquistou insígnias. Complete metas para ganhar!",
+                    modifier = Modifier.padding(18.dp),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            } else {
+                Row(
+                    modifier = Modifier
+                        .padding(18.dp)
+                        .fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(16.dp)
+                ) {
+                    user?.badges?.forEach { badgeId ->
+                        BadgeIcon(badgeId)
                     }
                 }
             }
@@ -268,6 +310,68 @@ fun ProfilePage(
 }
 
 @Composable
+fun StatsColumn(
+    icon: ImageVector,
+    iconColor: Color,
+    value: String,
+    label: String
+) {
+    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+        Icon(
+            imageVector = icon,
+            contentDescription = null,
+            tint = iconColor,
+            modifier = Modifier.size(28.dp)
+        )
+        Text(
+            text = value,
+            style = MaterialTheme.typography.titleLarge,
+            fontWeight = FontWeight.Bold,
+            color = MaterialTheme.colorScheme.onSurface
+        )
+        Text(
+            text = label,
+            style = MaterialTheme.typography.labelSmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+    }
+}
+
+@Composable
+fun BadgeIcon(badgeId: String) {
+    val (icon, color, title) = when (badgeId) {
+        "primeira_meta" -> Triple(Icons.Default.Star, Color(0xFF4CAF50), "Iniciante")
+        "bronze_meta" -> Triple(Icons.Default.EmojiEvents, Color(0xFFCD7F32), "Bronze")
+        "prata_meta" -> Triple(Icons.Default.EmojiEvents, Color(0xFFC0C0C0), "Prata")
+        "ouro_meta" -> Triple(Icons.Default.EmojiEvents, Color(0xFFFFD700), "Ouro")
+        else -> Triple(Icons.Default.Star, Color.Gray, "Badge")
+    }
+
+    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+        Box(
+            modifier = Modifier
+                .size(48.dp)
+                .clip(CircleShape)
+                .background(color.copy(alpha = 0.2f)),
+            contentAlignment = Alignment.Center
+        ) {
+            Icon(
+                imageVector = icon,
+                contentDescription = title,
+                tint = color,
+                modifier = Modifier.size(24.dp)
+            )
+        }
+        Text(
+            text = title,
+            style = MaterialTheme.typography.labelSmall,
+            modifier = Modifier.padding(top = 4.dp)
+        )
+    }
+}
+
+
+@Composable
 fun SettingsItem(
     icon: ImageVector,
     title: String,
@@ -300,3 +404,4 @@ fun SettingsItem(
         }
     }
 }
+

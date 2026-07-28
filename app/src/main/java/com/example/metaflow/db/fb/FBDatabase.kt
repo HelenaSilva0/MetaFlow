@@ -75,6 +75,19 @@ class FBDatabase {
         db.collection("users").document(uid).update(changes)
     }
 
+    fun updateUserStats(user: FBUser) {
+        if (auth.currentUser == null) return
+        val uid = auth.currentUser!!.uid
+        val changes = mapOf(
+            "xp" to user.xp,
+            "streak" to user.streak,
+            "lastActivityDate" to user.lastActivityDate,
+            "badges" to user.badges,
+            "totalCompleted" to user.totalCompleted
+        )
+        db.collection("users").document(uid).update(changes)
+    }
+
     fun login(email: String, password: String, onResult: (Boolean) -> Unit) {
         auth.signInWithEmailAndPassword(email, password)
             .addOnCompleteListener { task ->

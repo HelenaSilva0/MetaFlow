@@ -10,24 +10,33 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.filled.Flag
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Icon
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
+import com.example.metaflow.model.Mission
 import com.example.metaflow.ui.components.GoalItem
 import com.example.metaflow.viewmodel.MainViewModel
 
@@ -38,6 +47,7 @@ fun HomePage(
 ) {
     val progress = viewModel.progressPercent()
     val goals = viewModel.goals
+    val missions = viewModel.missions
     val activity = LocalActivity.current
     val context = LocalContext.current
     val scrollState = rememberScrollState()
@@ -66,6 +76,21 @@ fun HomePage(
             fontSize = 16.sp,
             style = MaterialTheme.typography.titleMedium
         )
+
+        // Seção de Missões
+        if (missions.isNotEmpty()) {
+            Text(
+                text = "Missões de Hoje",
+                color = MaterialTheme.colorScheme.onBackground,
+                fontSize = 20.sp,
+                style = MaterialTheme.typography.titleLarge,
+                modifier = Modifier.padding(top = 8.dp)
+            )
+
+            missions.forEach { mission ->
+                MissionItem(mission)
+            }
+        }
 
         Card(
             colors = CardDefaults.cardColors(
@@ -207,3 +232,58 @@ fun HomePage(
         )
     }
 }
+
+@Composable
+fun MissionItem(mission: Mission) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(
+            containerColor = if (mission.isCompleted) 
+                MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.5f) 
+            else MaterialTheme.colorScheme.surfaceVariant
+        ),
+        shape = MaterialTheme.shapes.medium
+    ) {
+        Row(
+            modifier = Modifier.padding(14.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Icon(
+                imageVector = if (mission.isCompleted) Icons.Default.CheckCircle else Icons.Default.Flag,
+                contentDescription = null,
+                tint = if (mission.isCompleted) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.secondary,
+                modifier = Modifier.size(24.dp)
+            )
+            
+            Spacer(modifier = Modifier.width(12.dp))
+            
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = mission.title,
+                    style = MaterialTheme.typography.titleSmall,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
+                Text(
+                    text = mission.description,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+            
+            Column(horizontalAlignment = Alignment.End) {
+                Text(
+                    text = "${mission.currentCount}/${mission.targetCount}",
+                    style = MaterialTheme.typography.labelMedium,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
+                Text(
+                    text = "+${mission.points} XP",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.primary,
+                    fontWeight = androidx.compose.ui.text.font.FontWeight.Bold
+                )
+            }
+        }
+    }
+}
+

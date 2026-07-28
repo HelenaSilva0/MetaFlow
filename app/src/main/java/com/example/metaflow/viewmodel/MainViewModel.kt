@@ -10,6 +10,7 @@ import com.example.metaflow.db.fb.FBUser
 import com.example.metaflow.db.fb.toFBGoal
 import com.example.metaflow.db.fb.toFBUser
 import com.example.metaflow.model.Goal
+import com.example.metaflow.model.Mission
 import com.example.metaflow.model.User
 import com.example.metaflow.monitor.GoalMonitor
 import java.util.Calendar
@@ -25,12 +26,16 @@ class MainViewModel(private val db: FBDatabase, private val monitor: GoalMonitor
     private val _ranking = mutableStateListOf<User>()
     val ranking get() = _ranking.toList()
 
+    private val _missions = mutableStateListOf<Mission>()
+    val missions get() = _missions.toList()
+
     init {
         db.setListener(this)
         db.getAllUsers { users ->
             _ranking.clear()
             _ranking.addAll(users.map { it.toUser() })
         }
+        generateDailyMissions()
     }
 
     fun login(email: String, password: String, onResult: (Boolean) -> Unit) {
@@ -97,11 +102,100 @@ class MainViewModel(private val db: FBDatabase, private val monitor: GoalMonitor
         )
         db.add(updatedGoal.toFBGoal())
         
-        // Update XP: +50 for completion, -50 if uncompleted. Ensure it's never negative.
-        val xpChange = if (updatedGoal.completed) 50 else -50
-        val currentXP = _user.value?.xp ?: 0
-        val newXP = (currentXP + xpChange).coerceAtLeast(0)
-        db.updateUserXP(newXP)
+        if (updatedGoal.completed) {
+            updateGamificationStats(updatedGoal)
+        } else {
+            // Se desmarcar, apenas remove o XP base (simplificado)
+            val currentXP = _user.value?.xp ?: 0
+            val newXP = (currentXP - 50).coerceAtLeast(0)
+            db.updateUserXP(newXP)
+        }
+    }
+
+    private fun updateGamificationStats(goal: Goal) {
+        val currentUser = _user.value ?: return
+        val now = System.currentTimeMillis()
+        
+        // 1. Cálculo de Streak
+        val lastActivity = currentUser.lastActivityDate
+        val streak = calculateNewStreak(lastActivity, now, currentUser.streak)
+        
+        // 2. XP Dinâmico
+        var xpGain = 50 // Base
+        if (goal.priority == "Alta") xpGain += 25
+        xpGain += (streak * 5).coerceAtMost(50) // Bônus de streak
+        
+        val newXP = currentUser.xp + xpGain
+        val newTotalCompleted = currentUser.totalCompleted + 1
+        
+        // 3. Verificação de Insígnias
+        val newBadges = currentUser.badges.toMutableList()
+        checkAndAddBadges(newTotalCompleted, newBadges)
+        
+        val updatedUser = currentUser.copy(
+            xp = newXP,
+            streak = streak,
+            lastActivityDate = now,
+            totalCompleted = newTotalCompleted,
+            badges = newBadges
+        )
+        
+        db.updateUserStats(updatedUser.toFBUser())
+        
+        // 4. Atualizar Missões
+        updateMissionProgress()
+    }
+
+    private fun calculateNewStreak(lastActivity: Long, now: Long, currentStreak: Int): Int {
+        if (lastActivity == 0L) return 1
+        
+        val calLast = Calendar.getInstance().apply { timeInMillis = lastActivity }
+        val calNow = Calendar.getInstance().apply { timeInMillis = now }
+        
+        // Mesma data
+        if (calLast.get(Calendar.DAY_OF_YEAR) == calNow.get(Calendar.DAY_OF_YEAR) &&
+            calLast.get(Calendar.YEAR) == calNow.get(Calendar.YEAR)) {
+            return currentStreak
+        }
+        
+        // Dia anterior
+        calLast.add(Calendar.DAY_OF_YEAR, 1)
+        if (calLast.get(Calendar.DAY_OF_YEAR) == calNow.get(Calendar.DAY_OF_YEAR) &&
+            calLast.get(Calendar.YEAR) == calNow.get(Calendar.YEAR)) {
+            return currentStreak + 1
+        }
+        
+        return 1 // Reset
+    }
+
+    private fun checkAndAddBadges(totalCompleted: Int, badges: MutableList<String>) {
+        if (totalCompleted >= 1 && !badges.contains("primeira_meta")) badges.add("primeira_meta")
+        if (totalCompleted >= 10 && !badges.contains("bronze_meta")) badges.add("bronze_meta")
+        if (totalCompleted >= 50 && !badges.contains("prata_meta")) badges.add("prata_meta")
+        if (totalCompleted >= 100 && !badges.contains("ouro_meta")) badges.add("ouro_meta")
+    }
+
+    private fun generateDailyMissions() {
+        _missions.clear()
+        _missions.add(Mission("m1", "Explorador", "Complete 1 meta hoje", 20, targetCount = 1))
+        _missions.add(Mission("m2", "Focado", "Complete 3 metas hoje", 60, targetCount = 3))
+        _missions.add(Mission("m3", "Alta Prioridade", "Complete uma meta de alta prioridade", 40, targetCount = 1))
+    }
+
+    private fun updateMissionProgress() {
+        val todayCompleted = getTodayGoals().size
+        val highPriorityToday = getTodayGoals().count { it.priority == "Alta" }
+        
+        val updatedMissions = _missions.map { mission ->
+            when (mission.id) {
+                "m1" -> mission.copy(currentCount = todayCompleted, isCompleted = todayCompleted >= 1)
+                "m2" -> mission.copy(currentCount = todayCompleted, isCompleted = todayCompleted >= 3)
+                "m3" -> mission.copy(currentCount = highPriorityToday, isCompleted = highPriorityToday >= 1)
+                else -> mission
+            }
+        }
+        _missions.clear()
+        _missions.addAll(updatedMissions)
     }
 
     override fun onUserLoaded(user: FBUser) {
