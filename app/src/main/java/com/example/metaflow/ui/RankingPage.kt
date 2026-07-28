@@ -23,6 +23,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.filled.EmojiEvents
 import androidx.compose.material.icons.filled.Notifications
+import androidx.compose.material.icons.filled.Whatshot
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -31,6 +32,7 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -106,39 +108,18 @@ fun RankingPage(
                         RankingItemCard(
                             position = (index + 4).toString(),
                             name = user.name,
-                            points = user.xp.toString()
+                            points = user.xp.toString(),
+                            streak = user.streak
                         )
                     }
                 }
             } else {
                 Text(
-                    text = "A comunidade está crescendo! Convide novos membros abaixo.",
+                    text = "A comunidade está crescendo!",
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.padding(vertical = 8.dp)
                 )
-            }
-
-            // Botão para popular o ranking
-            if (ranking.size < 5) {
-                Button(
-                    onClick = { 
-                        viewModel.generateCommunity { success ->
-                            if (success) {
-                                Toast.makeText(context, "Comunidade convidada com sucesso!", Toast.LENGTH_SHORT).show()
-                            } else {
-                                Toast.makeText(context, "Erro ao convidar: Verifique as regras do Firestore.", Toast.LENGTH_LONG).show()
-                            }
-                        }
-                    },
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = MaterialTheme.colorScheme.secondaryContainer,
-                        contentColor = MaterialTheme.colorScheme.onSecondaryContainer
-                    ),
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Text("Convidar Membros da Comunidade")
-                }
             }
             
             Spacer(modifier = Modifier.height(20.dp))
@@ -286,12 +267,22 @@ fun PodiumMember(
             fontWeight = FontWeight.Bold,
             color = MaterialTheme.colorScheme.onBackground
         )
-        Text(
-            text = points,
-            style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.primary,
-            fontWeight = FontWeight.Bold
-        )
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Text(
+                text = points,
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.primary,
+                fontWeight = FontWeight.Bold
+            )
+            // Simulação de badge simplificada para o pódio
+            Spacer(modifier = Modifier.width(4.dp))
+            Icon(
+                Icons.Default.Whatshot,
+                null,
+                tint = Color(0xFFFF5722),
+                modifier = Modifier.size(12.dp)
+            )
+        }
         
         Spacer(modifier = Modifier.height(8.dp))
 
@@ -379,7 +370,8 @@ fun UserHighlightCard(
 fun RankingItemCard(
     position: String,
     name: String,
-    points: String
+    points: String,
+    streak: Int = 0
 ) {
     Card(
         modifier = Modifier.fillMaxWidth(),
@@ -410,13 +402,29 @@ fun RankingItemCard(
                     .clip(CircleShape)
             )
             Spacer(modifier = Modifier.width(12.dp))
-            Text(
-                text = name,
-                style = MaterialTheme.typography.bodyMedium,
-                fontWeight = FontWeight.Medium,
-                color = MaterialTheme.colorScheme.onSurface,
-                modifier = Modifier.weight(1f)
-            )
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = name,
+                    style = MaterialTheme.typography.bodyMedium,
+                    fontWeight = FontWeight.Medium,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
+                if (streak > 0) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Icon(
+                            Icons.Default.Whatshot,
+                            null,
+                            tint = Color(0xFFFF5722),
+                            modifier = Modifier.size(12.dp)
+                        )
+                        Text(
+                            text = "$streak dias",
+                            style = MaterialTheme.typography.labelSmall,
+                            color = Color(0xFFFF5722)
+                        )
+                    }
+                }
+            }
             Text(
                 text = "$points pts",
                 style = MaterialTheme.typography.bodyMedium,

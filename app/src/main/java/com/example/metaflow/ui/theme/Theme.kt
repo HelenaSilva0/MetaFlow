@@ -57,17 +57,24 @@ private val LightColorScheme = lightColorScheme(
 
 @Composable
 fun MetaFlowTheme(
-    darkTheme: Boolean = false, // Mudado para false por padrão para seguir a identidade visual clean
+    darkTheme: Boolean = isSystemInDarkTheme(),
+    themePreference: String = "Sistema",
     dynamicColor: Boolean = false,
     content: @Composable () -> Unit
 ) {
+    val isDark = when (themePreference) {
+        "Escuro" -> true
+        "Claro" -> false
+        else -> darkTheme
+    }
+
     val colorScheme = when {
         dynamicColor && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> {
             val context = LocalContext.current
-            if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
+            if (isDark) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
         }
 
-        darkTheme -> DarkColorScheme
+        isDark -> DarkColorScheme
         else -> LightColorScheme
     }
 
@@ -76,7 +83,7 @@ fun MetaFlowTheme(
         SideEffect {
             val window = (view.context as Activity).window
             window.statusBarColor = colorScheme.background.toArgb()
-            WindowCompat.getInsetsController(window, view).isAppearanceLightStatusBars = !darkTheme
+            WindowCompat.getInsetsController(window, view).isAppearanceLightStatusBars = !isDark
         }
     }
 

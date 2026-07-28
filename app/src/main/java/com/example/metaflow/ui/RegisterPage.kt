@@ -8,33 +8,46 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Button
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.metaflow.viewmodel.MainViewModel
 
 @Composable
 fun RegisterPage(
     modifier: Modifier = Modifier,
+    viewModel: MainViewModel,
     onRegister: (String, String, String) -> Unit
 ) {
     var name by rememberSaveable { mutableStateOf("") }
     var email by rememberSaveable { mutableStateOf("") }
     var password by rememberSaveable { mutableStateOf("") }
     var repeatPassword by rememberSaveable { mutableStateOf("") }
+
+    val error = viewModel.authError
+    val isLoading = viewModel.isLoading
+
+    DisposableEffect(Unit) {
+        onDispose { viewModel.clearAuthError() }
+    }
 
     Column(
         modifier = modifier
@@ -59,6 +72,16 @@ fun RegisterPage(
         )
 
         Spacer(modifier = Modifier.height(24.dp))
+
+        if (error != null) {
+            Text(
+                text = error,
+                color = MaterialTheme.colorScheme.error,
+                style = MaterialTheme.typography.bodySmall,
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier.padding(bottom = 8.dp)
+            )
+        }
 
         OutlinedTextField(
             value = name,
@@ -107,7 +130,8 @@ fun RegisterPage(
 
         Button(
             onClick = { onRegister(name, email, password) },
-            enabled = name.isNotEmpty() &&
+            enabled = !isLoading && 
+                    name.isNotEmpty() &&
                     email.isNotEmpty() &&
                     password.isNotEmpty() &&
                     repeatPassword.isNotEmpty() &&
@@ -115,7 +139,15 @@ fun RegisterPage(
             shape = MaterialTheme.shapes.extraLarge,
             modifier = Modifier.fillMaxWidth()
         ) {
-            Text("Registrar")
+            if (isLoading) {
+                CircularProgressIndicator(
+                    modifier = Modifier.size(24.dp),
+                    color = MaterialTheme.colorScheme.onPrimary,
+                    strokeWidth = 2.dp
+                )
+            } else {
+                Text("Registrar")
+            }
         }
 
         Spacer(modifier = Modifier.height(10.dp))

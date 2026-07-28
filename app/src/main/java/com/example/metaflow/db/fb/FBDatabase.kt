@@ -19,6 +19,7 @@ class FBDatabase {
     private val db = Firebase.firestore
     private var goalsListReg: ListenerRegistration? = null
     private var userReg: ListenerRegistration? = null
+    private var rankingReg: ListenerRegistration? = null
     private var listener: Listener? = null
 
     init {
@@ -26,6 +27,7 @@ class FBDatabase {
             if (auth.currentUser == null) {
                 goalsListReg?.remove()
                 userReg?.remove()
+                rankingReg?.remove()
                 listener?.onUserSignOut()
                 return@addAuthStateListener
             }
@@ -58,24 +60,62 @@ class FBDatabase {
         this.listener = listener
     }
 
-    fun register(user: FBUser) {
-        if (auth.currentUser == null)
-            throw RuntimeException("User not logged in!")
+    fun register(user: FBUser, onResult: (Boolean) -> Unit = {}) {
+        if (auth.currentUser == null) {
+            onResult(false)
+            return
+        }
         val uid = auth.currentUser!!.uid
         db.collection("users").document(uid).set(user)
-    }
-
-    fun login(email: String, password: String, onResult: (Boolean) -> Unit) {
-        auth.signInWithEmailAndPassword(email, password)
             .addOnCompleteListener { task ->
                 onResult(task.isSuccessful)
             }
     }
 
-    fun registerAuth(email: String, password: String, onResult: (Boolean) -> Unit) {
+    fun updateUser(user: FBUser) {
+        if (auth.currentUser == null) return
+        val uid = auth.currentUser!!.uid
+        val changes = mapOf(
+            "name" to user.name,
+            "email" to user.email,
+            "profilePic" to user.profilePic,
+            "theme" to user.theme
+        )
+        db.collection("users").document(uid).update(changes)
+    }
+
+    fun updateUserStats(user: FBUser) {
+        if (auth.currentUser == null) return
+        val uid = auth.currentUser!!.uid
+        val changes = mapOf(
+            "xp" to user.xp,
+            "streak" to user.streak,
+            "lastActivityDate" to user.lastActivityDate,
+            "badges" to user.badges,
+            "totalCompleted" to user.totalCompleted
+        )
+        db.collection("users").document(uid).update(changes)
+    }
+
+    fun login(email: String, password: String, onResult: (String?) -> Unit) {
+        auth.signInWithEmailAndPassword(email, password)
+            .addOnCompleteListener { task ->
+                if (task.isSuccessful) {
+                    onResult(null)
+                } else {
+                    onResult(task.exception?.localizedMessage ?: "Erro ao entrar")
+                }
+            }
+    }
+
+    fun registerAuth(email: String, password: String, onResult: (String?) -> Unit) {
         auth.createUserWithEmailAndPassword(email, password)
             .addOnCompleteListener { task ->
-                onResult(task.isSuccessful)
+                if (task.isSuccessful) {
+                    onResult(null)
+                } else {
+                    onResult(task.exception?.localizedMessage ?: "Erro ao criar conta")
+                }
             }
     }
 
@@ -131,22 +171,12 @@ class FBDatabase {
     }
 
     fun getAllUsers(onResult: (List<FBUser>) -> Unit) {
-        db.collection("users")
+        rankingReg?.remove()
+        rankingReg = db.collection("users")
             .orderBy("xp", com.google.firebase.firestore.Query.Direction.DESCENDING)
             .addSnapshotListener { snapshots, _ ->
                 val users = snapshots?.toObjects(FBUser::class.java) ?: emptyList()
                 onResult(users)
             }
-    }
-
-    fun seedUsers(users: List<FBUser>, onComplete: (Boolean) -> Unit) {
-        val batch = db.batch()
-        users.forEach { user ->
-            val ref = db.collection("users").document(java.util.UUID.randomUUID().toString())
-            batch.set(ref, user)
-        }
-        batch.commit().addOnCompleteListener { task ->
-            onComplete(task.isSuccessful)
-        }
     }
 }
