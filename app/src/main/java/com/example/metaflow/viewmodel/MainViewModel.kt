@@ -46,6 +46,14 @@ class MainViewModel(private val db: FBDatabase, private val monitor: GoalMonitor
         }
     }
 
+    fun updateUserProfile(newName: String) {
+        val currentUser = _user.value ?: return
+        if (newName.isBlank()) return
+        
+        val updatedUser = currentUser.copy(name = newName)
+        db.updateUser(updatedUser.toFBUser())
+    }
+
     fun addGoal(
         name: String,
         category: String,
