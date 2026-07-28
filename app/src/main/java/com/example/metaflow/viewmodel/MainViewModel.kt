@@ -59,6 +59,18 @@ class MainViewModel(private val db: FBDatabase, private val monitor: GoalMonitor
         db.updateUser(updatedUser.toFBUser())
     }
 
+    fun updateProfilePic(base64: String) {
+        val currentUser = _user.value ?: return
+        val updatedUser = currentUser.copy(profilePic = base64)
+        db.updateUser(updatedUser.toFBUser())
+    }
+
+    fun updateTheme(newTheme: String) {
+        val currentUser = _user.value ?: return
+        val updatedUser = currentUser.copy(theme = newTheme)
+        db.updateUser(updatedUser.toFBUser())
+    }
+
     fun addGoal(
         name: String,
         category: String,

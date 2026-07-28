@@ -1,6 +1,13 @@
 package com.example.metaflow.ui
 
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
+import android.net.Uri
+import android.util.Base64
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -16,6 +23,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Badge
+import androidx.compose.material.icons.filled.CameraAlt
 import androidx.compose.material.icons.filled.Cancel
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Email
@@ -30,12 +38,16 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.SegmentedButton
+import androidx.compose.material3.SegmentedButtonDefaults
+import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -47,11 +59,17 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import coil.compose.AsyncImage
 import com.example.metaflow.viewmodel.MainViewModel
+import java.io.ByteArrayOutputStream
+import java.io.InputStream
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ProfilePage(
     modifier: Modifier = Modifier,
@@ -60,9 +78,23 @@ fun ProfilePage(
 ) {
     val user = viewModel.user
     val scrollState = rememberScrollState()
+    val context = LocalContext.current
 
     var isEditing by remember { mutableStateOf(false) }
     var editedName by remember(user?.name) { mutableStateOf(user?.name ?: "") }
+
+    val themeOptions = listOf("Sistema", "Claro", "Escuro")
+
+    val imagePickerLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.GetContent()
+    ) { uri: Uri? ->
+        uri?.let {
+            val base64 = convertUriToBase64(context, it)
+            if (base64 != null) {
+                viewModel.updateProfilePic(base64)
+            }
+        }
+    }
 
     Column(
         modifier = modifier
@@ -151,16 +183,42 @@ fun ProfilePage(
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Box(
                             modifier = Modifier
-                                .size(60.dp)
+                                .size(80.dp)
                                 .clip(CircleShape)
-                                .background(MaterialTheme.colorScheme.primaryContainer),
+                                .background(MaterialTheme.colorScheme.primaryContainer)
+                                .clickable { imagePickerLauncher.launch("image/*") },
                             contentAlignment = Alignment.Center
                         ) {
-                            Text(
-                                text = (user?.name?.take(1) ?: "M").uppercase(),
-                                style = MaterialTheme.typography.headlineLarge,
-                                color = MaterialTheme.colorScheme.onPrimaryContainer
-                            )
+                            if (user?.profilePic != null) {
+                                val imageBytes = Base64.decode(user.profilePic, Base64.DEFAULT)
+                                val bitmap = BitmapFactory.decodeByteArray(imageBytes, 0, imageBytes.size)
+                                AsyncImage(
+                                    model = bitmap,
+                                    contentDescription = "Foto de perfil",
+                                    modifier = Modifier.fillMaxSize(),
+                                    contentScale = ContentScale.Crop
+                                )
+                            } else {
+                                Text(
+                                    text = (user?.name?.take(1) ?: "M").uppercase(),
+                                    style = MaterialTheme.typography.headlineLarge,
+                                    color = MaterialTheme.colorScheme.onPrimaryContainer
+                                )
+                            }
+                            
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxSize()
+                                    .background(Color.Black.copy(alpha = 0.2f)),
+                                contentAlignment = Alignment.BottomCenter
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.CameraAlt,
+                                    contentDescription = null,
+                                    tint = Color.White.copy(alpha = 0.8f),
+                                    modifier = Modifier.size(20.dp).padding(bottom = 4.dp)
+                                )
+                            }
                         }
 
                         Spacer(modifier = Modifier.size(16.dp))
@@ -276,18 +334,46 @@ fun ProfilePage(
             shape = MaterialTheme.shapes.large,
             modifier = Modifier.fillMaxWidth()
         ) {
-            Column {
+            Column(modifier = Modifier.padding(vertical = 8.dp)) {
                 SettingsItem(
                     icon = Icons.Default.Notifications,
                     title = "Notificações",
                     subtitle = "Ativadas"
                 )
                 HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp), thickness = 0.5.dp)
-                SettingsItem(
-                    icon = Icons.Default.Palette,
-                    title = "Tema",
-                    subtitle = "Minimalista"
-                )
+                
+                Column(modifier = Modifier.padding(16.dp)) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Icon(
+                            imageVector = Icons.Default.Palette,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.size(24.dp)
+                        )
+                        Spacer(Modifier.size(16.dp))
+                        Text(
+                            text = "Tema do App",
+                            style = MaterialTheme.typography.titleMedium,
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
+                    }
+                    
+                    Spacer(modifier = Modifier.height(12.dp))
+                    
+                    SingleChoiceSegmentedButtonRow(
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        themeOptions.forEachIndexed { index, label ->
+                            SegmentedButton(
+                                shape = SegmentedButtonDefaults.itemShape(index = index, count = themeOptions.size),
+                                onClick = { viewModel.updateTheme(label) },
+                                selected = label == (user?.theme ?: "Sistema")
+                            ) {
+                                Text(label, style = MaterialTheme.typography.bodySmall)
+                            }
+                        }
+                    }
+                }
             }
         }
 
@@ -370,7 +456,6 @@ fun BadgeIcon(badgeId: String) {
     }
 }
 
-
 @Composable
 fun SettingsItem(
     icon: ImageVector,
@@ -405,3 +490,20 @@ fun SettingsItem(
     }
 }
 
+fun convertUriToBase64(context: android.content.Context, uri: Uri): String? {
+    return try {
+        val inputStream: InputStream? = context.contentResolver.openInputStream(uri)
+        val bitmap = BitmapFactory.decodeStream(inputStream)
+        
+        // Redimensionar para não exceder limites do Firestore (max 1MB por documento)
+        val resizedBitmap = Bitmap.createScaledBitmap(bitmap, 400, 400, true)
+        
+        val outputStream = ByteArrayOutputStream()
+        resizedBitmap.compress(Bitmap.CompressFormat.JPEG, 70, outputStream)
+        val byteArray = outputStream.toByteArray()
+        Base64.encodeToString(byteArray, Base64.DEFAULT)
+    } catch (e: Exception) {
+        e.printStackTrace()
+        null
+    }
+}

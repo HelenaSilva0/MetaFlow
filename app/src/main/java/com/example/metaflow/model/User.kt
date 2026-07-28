@@ -7,5 +7,7 @@ data class User(
     val streak: Int = 0,
     val lastActivityDate: Long = 0L,
     val badges: List<String> = emptyList(),
-    val totalCompleted: Int = 0
+    val totalCompleted: Int = 0,
+    val profilePic: String? = null,
+    val theme: String = "Sistema"
 )

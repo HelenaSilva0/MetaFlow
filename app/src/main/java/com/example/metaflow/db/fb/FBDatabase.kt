@@ -70,7 +70,9 @@ class FBDatabase {
         val uid = auth.currentUser!!.uid
         val changes = mapOf(
             "name" to user.name,
-            "email" to user.email
+            "email" to user.email,
+            "profilePic" to user.profilePic,
+            "theme" to user.theme
         )
         db.collection("users").document(uid).update(changes)
     }

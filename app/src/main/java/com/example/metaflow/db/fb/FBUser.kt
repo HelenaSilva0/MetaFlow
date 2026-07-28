@@ -10,6 +10,8 @@ class FBUser {
     var lastActivityDate: Long = 0L
     var badges: List<String> = emptyList()
     var totalCompleted: Int = 0
+    var profilePic: String? = null
+    var theme: String? = "Sistema"
 
     fun toUser() = User(
         name = name ?: "",
@@ -18,7 +20,9 @@ class FBUser {
         streak = streak,
         lastActivityDate = lastActivityDate,
         badges = badges,
-        totalCompleted = totalCompleted
+        totalCompleted = totalCompleted,
+        profilePic = profilePic,
+        theme = theme ?: "Sistema"
     )
 }
 
@@ -31,5 +35,7 @@ fun User.toFBUser(): FBUser {
     fbUser.lastActivityDate = this.lastActivityDate
     fbUser.badges = this.badges
     fbUser.totalCompleted = this.totalCompleted
+    fbUser.profilePic = this.profilePic
+    fbUser.theme = this.theme
     return fbUser
 }

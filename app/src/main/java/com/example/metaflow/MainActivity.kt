@@ -73,7 +73,7 @@ class MainActivity : ComponentActivity() {
 
             var showDialog by remember { mutableStateOf(false) }
 
-            MetaFlowTheme {
+            MetaFlowTheme(themePreference = viewModel.user?.theme ?: "Sistema") {
                 if (showDialog) {
                     GoalDialog(
                         onDismiss = {
