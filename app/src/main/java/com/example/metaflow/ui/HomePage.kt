@@ -59,12 +59,6 @@ fun HomePage(
             .padding(20.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
-        Text(
-            text = "Olá, bem-vinda ao MetaFlow!",
-            color = MaterialTheme.colorScheme.onBackground,
-            fontSize = 24.sp,
-            style = MaterialTheme.typography.headlineSmall
-        )
 
         Text(
             text = "Hábitos alcançam metas.",
