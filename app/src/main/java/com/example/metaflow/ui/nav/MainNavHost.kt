@@ -29,6 +29,7 @@ fun MainNavHost(
     ) {
         composable<Route.Login> {
             LoginPage(
+                viewModel = viewModel,
                 onLogin = { email, password ->
                     viewModel.login(email, password) { success ->
                         if (success) onLoginSuccess()
@@ -42,9 +43,10 @@ fun MainNavHost(
 
         composable<Route.Register> {
             RegisterPage(
+                viewModel = viewModel,
                 onRegister = { name, email, password ->
                     viewModel.register(name, email, password) { success ->
-                        if (success) navController.navigate(Route.Login)
+                        if (success) onLoginSuccess()
                     }
                 }
             )

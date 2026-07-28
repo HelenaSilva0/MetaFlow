@@ -29,26 +29,56 @@ class MainViewModel(private val db: FBDatabase, private val monitor: GoalMonitor
     private val _missions = mutableStateListOf<Mission>()
     val missions get() = _missions.toList()
 
+    private val _authError = mutableStateOf<String?>(null)
+    val authError: String? get() = _authError.value
+
+    private val _isLoading = mutableStateOf(false)
+    val isLoading: Boolean get() = _isLoading.value
+
     init {
         db.setListener(this)
-        db.getAllUsers { users ->
-            _ranking.clear()
-            _ranking.addAll(users.map { it.toUser() })
-        }
         generateDailyMissions()
     }
 
     fun login(email: String, password: String, onResult: (Boolean) -> Unit) {
-        db.login(email, password, onResult)
+        _isLoading.value = true
+        _authError.value = null
+        db.login(email, password) { error ->
+            _isLoading.value = false
+            if (error == null) {
+                onResult(true)
+            } else {
+                _authError.value = error
+                onResult(false)
+            }
+        }
     }
 
     fun register(name: String, email: String, password: String, onResult: (Boolean) -> Unit) {
-        db.registerAuth(email, password) { success ->
-            if (success) {
-                db.register(User(name, email).toFBUser())
+        _isLoading.value = true
+        _authError.value = null
+        db.registerAuth(email, password) { error ->
+            if (error == null) {
+                // Auth success, now Firestore
+                db.register(User(name, email).toFBUser()) { dbSuccess ->
+                    _isLoading.value = false
+                    if (dbSuccess) {
+                        onResult(true)
+                    } else {
+                        _authError.value = "Conta criada, mas erro ao salvar perfil. Tente entrar."
+                        onResult(false)
+                    }
+                }
+            } else {
+                _isLoading.value = false
+                _authError.value = error
+                onResult(false)
             }
-            onResult(success)
         }
+    }
+
+    fun clearAuthError() {
+        _authError.value = null
     }
 
     fun updateUserProfile(newName: String) {
@@ -112,15 +142,23 @@ class MainViewModel(private val db: FBDatabase, private val monitor: GoalMonitor
             completed = !goal.completed,
             completedAt = if (!goal.completed) now else null
         )
+        
+        // Atualização local imediata (Optimistic UI) para as missões detectarem a mudança
+        val index = _goals.indexOfFirst { it.id == goal.id }
+        if (index != -1) {
+            _goals[index] = updatedGoal
+        }
+
         db.add(updatedGoal.toFBGoal())
         
         if (updatedGoal.completed) {
             updateGamificationStats(updatedGoal)
         } else {
-            // Se desmarcar, apenas remove o XP base (simplificado)
+            // Se desmarcar, remove o XP base e atualiza missões
             val currentXP = _user.value?.xp ?: 0
             val newXP = (currentXP - 50).coerceAtLeast(0)
             db.updateUserXP(newXP)
+            updateMissionProgress()
         }
     }
 
@@ -211,13 +249,24 @@ class MainViewModel(private val db: FBDatabase, private val monitor: GoalMonitor
     }
 
     override fun onUserLoaded(user: FBUser) {
+        val isFirstLoad = _user.value == null
         _user.value = user.toUser()
+        
+        if (isFirstLoad) {
+            db.getAllUsers { users ->
+                _ranking.clear()
+                _ranking.addAll(users.map { it.toUser() })
+            }
+            generateDailyMissions()
+            updateMissionProgress()
+        }
     }
 
     override fun onUserSignOut() {
         _user.value = null
         _goals.clear()
         _ranking.clear()
+        _missions.clear()
         monitor.cancelAll()
     }
 
@@ -308,20 +357,6 @@ class MainViewModel(private val db: FBDatabase, private val monitor: GoalMonitor
             (it.completedAt ?: 0L) >= monthStart && 
             (it.completedAt ?: 0L) < weekStart 
         }.sortedByDescending { it.completedAt }
-    }
-
-    fun generateCommunity(onResult: (Boolean) -> Unit) {
-        val fakeUsers = listOf(
-            User("Ana Oliveira", "ana@flow.com", 3200),
-            User("Bruno Santos", "bruno@flow.com", 2850),
-            User("Carla Mendonça", "carla@flow.com", 2400),
-            User("Diego Lima", "diego@flow.com", 1950),
-            User("Elena Souza", "elena@flow.com", 1600),
-            User("Fabio Rocha", "fabio@flow.com", 1200),
-            User("Gabi Costa", "gabi@flow.com", 850),
-            User("Hugo Silva", "hugo@flow.com", 500)
-        )
-        db.seedUsers(fakeUsers.map { it.toFBUser() }, onResult)
     }
 }
 
