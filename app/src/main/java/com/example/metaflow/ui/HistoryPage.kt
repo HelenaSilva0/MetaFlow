@@ -5,6 +5,7 @@ import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -15,6 +16,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CheckCircle
@@ -31,32 +33,32 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.rotate
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.metaflow.model.Goal
 import com.example.metaflow.viewmodel.MainViewModel
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
 @Composable
 fun HistoryPage(
     modifier: Modifier = Modifier,
     viewModel: MainViewModel
 ) {
-    val goals = viewModel.goals
     val scrollState = rememberScrollState()
     
-    val now = System.currentTimeMillis()
-    val dayMillis = 24 * 60 * 60 * 1000L
-    val weekMillis = 7 * dayMillis
-    val monthMillis = 30 * dayMillis
-
-    val todayGoals = goals.filter { it.completed && it.completedAt != null && (now - it.completedAt) < dayMillis }
-    val weekGoals = goals.filter { it.completed && it.completedAt != null && (now - it.completedAt) in (dayMillis + 1)..weekMillis }
-    val monthGoals = goals.filter { it.completed && it.completedAt != null && (now - it.completedAt) in (weekMillis + 1)..monthMillis }
+    val todayGoals = viewModel.getTodayGoals()
+    val weekGoals = viewModel.getThisWeekGoals()
+    val monthGoals = viewModel.getThisMonthGoals()
 
     Column(
         modifier = modifier
@@ -104,12 +106,12 @@ fun HistoryPage(
         }
 
         HistoryCard(
-            title = "Esta semana",
+            title = "Anteriores nesta semana",
             summary = "${weekGoals.size} metas concluídas"
         ) {
             if (weekGoals.isEmpty()) {
                 Text(
-                    text = "Nenhuma meta concluída nesta semana.",
+                    text = "Nenhuma meta concluída anteriormente nesta semana.",
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -128,12 +130,12 @@ fun HistoryPage(
         }
 
         HistoryCard(
-            title = "Este mês",
+            title = "Anteriores neste mês",
             summary = "${monthGoals.size} metas concluídas"
         ) {
             if (monthGoals.isEmpty()) {
                 Text(
-                    text = "Nenhuma meta concluída este mês.",
+                    text = "Nenhuma meta concluída anteriormente este mês.",
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -218,28 +220,54 @@ fun HistoryCard(
 
 @Composable
 fun GoalHistoryItem(goal: Goal) {
+    val completionTime = remember(goal.completedAt) {
+        if (goal.completedAt != null) {
+            val date = Date(goal.completedAt)
+            val format = SimpleDateFormat("HH:mm", Locale.getDefault())
+            format.format(date)
+        } else ""
+    }
+
+    val priorityColor = when (goal.priority) {
+        "Alta" -> Color(0xFFE57373) // Reddish
+        "Média" -> Color(0xFFFFB74D) // Orangish
+        "Baixa" -> Color(0xFF81C784) // Greenish
+        else -> MaterialTheme.colorScheme.outline
+    }
+
     Row(
         modifier = Modifier.fillMaxWidth(),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Icon(
-            imageVector = if (goal.completed) Icons.Filled.CheckCircle else Icons.Outlined.RadioButtonUnchecked,
-            contentDescription = null,
-            tint = if (goal.completed) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline,
-            modifier = Modifier.size(20.dp)
+        Box(
+            modifier = Modifier
+                .size(8.dp)
+                .clip(CircleShape)
+                .background(priorityColor)
         )
+
         Spacer(modifier = Modifier.width(12.dp))
+
         Column(modifier = Modifier.weight(1f)) {
             Text(
                 text = goal.name,
                 style = MaterialTheme.typography.bodyMedium,
                 color = if (goal.completed) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
             )
-            Text(
-                text = goal.category,
-                style = MaterialTheme.typography.labelSmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(
+                    text = goal.category,
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+                if (completionTime.isNotEmpty()) {
+                    Text(
+                        text = " • Concluído às $completionTime",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.primary.copy(alpha = 0.7f)
+                    )
+                }
+            }
         }
         
         val icon = if (goal.isMonitored) Icons.Filled.Notifications else Icons.Outlined.Notifications

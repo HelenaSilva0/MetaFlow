@@ -87,12 +87,9 @@ fun GoalDialog(
     val scrollState = rememberScrollState()
 
     if (showTimePicker) {
-        val timePickerState = rememberTimePickerState()
         TimePickerDialog(
             onDismiss = { showTimePicker = false },
-            onConfirm = {
-                val hour = timePickerState.hour
-                val minute = timePickerState.minute
+            onConfirm = { hour, minute ->
                 reminderTime = String.format(Locale.getDefault(), "%02d:%02d", hour, minute)
                 showTimePicker = false
             }
@@ -388,12 +385,12 @@ fun TimePickerDialog(
 @Composable
 fun TimePickerDialog(
     onDismiss: () -> Unit,
-    onConfirm: () -> Unit
+    onConfirm: (Int, Int) -> Unit
 ) {
     val timePickerState = rememberTimePickerState()
     TimePickerDialog(
         onDismiss = onDismiss,
-        onConfirm = onConfirm
+        onConfirm = { onConfirm(timePickerState.hour, timePickerState.minute) }
     ) {
         TimePicker(state = timePickerState)
     }

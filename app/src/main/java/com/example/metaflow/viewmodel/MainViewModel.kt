@@ -12,6 +12,7 @@ import com.example.metaflow.db.fb.toFBUser
 import com.example.metaflow.model.Goal
 import com.example.metaflow.model.User
 import com.example.metaflow.monitor.GoalMonitor
+import java.util.Calendar
 
 class MainViewModel(private val db: FBDatabase, private val monitor: GoalMonitor) : ViewModel(), FBDatabase.Listener {
 
@@ -144,6 +145,55 @@ class MainViewModel(private val db: FBDatabase, private val monitor: GoalMonitor
 
     fun xpPoints(): Int {
         return _user.value?.xp ?: 0
+    }
+
+    // --- Lógica de Histórico ---
+
+    fun getTodayGoals(): List<Goal> {
+        val todayStart = Calendar.getInstance().apply {
+            set(Calendar.HOUR_OF_DAY, 0)
+            set(Calendar.MINUTE, 0)
+            set(Calendar.SECOND, 0)
+            set(Calendar.MILLISECOND, 0)
+        }.timeInMillis
+
+        return _goals.filter { it.completed && (it.completedAt ?: 0L) >= todayStart }
+            .sortedByDescending { it.completedAt }
+    }
+
+    fun getThisWeekGoals(): List<Goal> {
+        val todayStart = Calendar.getInstance().apply {
+            set(Calendar.HOUR_OF_DAY, 0)
+            set(Calendar.MINUTE, 0)
+            set(Calendar.SECOND, 0)
+            set(Calendar.MILLISECOND, 0)
+        }.timeInMillis
+
+        val weekStart = Calendar.getInstance().apply {
+            add(Calendar.DAY_OF_YEAR, -7)
+        }.timeInMillis
+
+        return _goals.filter { 
+            it.completed && 
+            (it.completedAt ?: 0L) >= weekStart && 
+            (it.completedAt ?: 0L) < todayStart 
+        }.sortedByDescending { it.completedAt }
+    }
+
+    fun getThisMonthGoals(): List<Goal> {
+        val weekStart = Calendar.getInstance().apply {
+            add(Calendar.DAY_OF_YEAR, -7)
+        }.timeInMillis
+
+        val monthStart = Calendar.getInstance().apply {
+            add(Calendar.DAY_OF_YEAR, -30)
+        }.timeInMillis
+
+        return _goals.filter { 
+            it.completed && 
+            (it.completedAt ?: 0L) >= monthStart && 
+            (it.completedAt ?: 0L) < weekStart 
+        }.sortedByDescending { it.completedAt }
     }
 
     fun generateCommunity(onResult: (Boolean) -> Unit) {
